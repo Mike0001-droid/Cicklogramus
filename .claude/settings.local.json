@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir public)",
+      "Bash(npm install:*)",
+      "Bash(Remove-Item -Path node_modules -Recurse -Force)",
+      "Bash(Remove-Item -Path package-lock.json -Force)"
+    ]
+  }
+}

@@ -1,13 +1,6 @@
 <template>
   <div class="auth-container">
     <div class="auth-card">
-      <div class="auth-header">
-        <h1 class="auth-title">
-          <span>Циклограммус</span>
-        </h1>
-        <p class="auth-subtitle">Система планирования проектов</p>
-      </div>
-
       <!-- Вкладки -->
       <ul class="nav nav-tabs auth-tabs">
         <li class="nav-item">
@@ -170,10 +163,20 @@ export default {
 
         const { access, refresh, user } = response;
 
+        console.log('🔍 Auth response user:', user);
+
         // Сохраняем токены
         localStorage.setItem('access_token', access);
         localStorage.setItem('refresh_token', refresh);
-        localStorage.setItem('user', JSON.stringify(user));
+
+        // Проверяем, что user не undefined перед сохранением
+        if (user) {
+          localStorage.setItem('user', JSON.stringify(user));
+          console.log('💾 Saved user to localStorage:', user);
+        } else {
+          console.warn('⚠️ User data is missing in response!');
+          localStorage.removeItem('user');
+        }
 
         // Настраиваем axios
         setAuthToken(access);
@@ -206,14 +209,28 @@ export default {
       this.registerError = '';
 
       try {
-        const response = await authService.register(this.registerData);
+        const response = await authService.register(
+          this.registerData.username,
+          this.registerData.password,
+          this.registerData.email
+        );
 
         const { access, refresh, user } = response;
+
+        console.log('🔍 Auth response user:', user);
 
         // Сохраняем токены
         localStorage.setItem('access_token', access);
         localStorage.setItem('refresh_token', refresh);
-        localStorage.setItem('user', JSON.stringify(user));
+
+        // Проверяем, что user не undefined перед сохранением
+        if (user) {
+          localStorage.setItem('user', JSON.stringify(user));
+          console.log('💾 Saved user to localStorage:', user);
+        } else {
+          console.warn('⚠️ User data is missing in response!');
+          localStorage.removeItem('user');
+        }
 
         // Настраиваем axios
         setAuthToken(access);
@@ -229,6 +246,8 @@ export default {
             this.registerError = errors.username[0];
           } else if (errors.password) {
             this.registerError = errors.password[0];
+          } else if (errors.error) {
+            this.registerError = errors.error;
           } else if (errors.detail) {
             this.registerError = errors.detail;
           }
@@ -249,7 +268,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f5f5f5;
   padding: 20px;
 }
 
@@ -260,32 +279,6 @@ export default {
   padding: 40px;
   width: 100%;
   max-width: 420px;
-}
-
-.auth-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.auth-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.logo {
-  font-size: 32px;
-}
-
-.auth-subtitle {
-  color: #666;
-  font-size: 14px;
-  margin: 0;
 }
 
 .auth-tabs {
@@ -304,11 +297,11 @@ export default {
 }
 
 .auth-tabs .nav-link:hover {
-  color: #667eea;
+  color: #4a90e2;
 }
 
 .auth-tabs .nav-link.active {
-  color: #667eea;
+  color: #4a90e2;
 }
 
 .auth-tabs .nav-link.active::after {
@@ -318,7 +311,7 @@ export default {
   left: 0;
   right: 0;
   height: 2px;
-  background: #667eea;
+  background: #4a90e2;
 }
 
 .auth-form .form-label {
@@ -336,8 +329,8 @@ export default {
 }
 
 .auth-form .form-control:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
 }
 
 .btn {
@@ -349,13 +342,14 @@ export default {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #4a90e2;
   border: none;
 }
 
 .btn-primary:hover:not(:disabled) {
+  background: #357abd;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 20px rgba(74, 144, 226, 0.4);
 }
 
 .btn-success {
@@ -371,5 +365,100 @@ export default {
 .btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+/* Bootstrap стили для форм */
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  padding-left: 0;
+  list-style: none;
+}
+
+.nav-item {
+  margin-bottom: 0;
+}
+
+.nav-tabs {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.alert {
+  position: relative;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+}
+
+.alert-danger {
+  color: #842029;
+  background-color: #f8d7da;
+  border-color: #f5c2c7;
+}
+
+.form-label {
+  margin-bottom: 0.5rem;
+  display: inline-block;
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #212529;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+  color: #212529;
+  background-color: #fff;
+  border-color: #86b7fe;
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.mb-3 {
+  margin-bottom: 1rem !important;
+}
+
+.spinner-border {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  vertical-align: text-bottom;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border 0.75s linear infinite;
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.2em;
+}
+
+@keyframes spinner-border {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.me-2 {
+  margin-right: 0.5rem !important;
+}
+
+.w-100 {
+  width: 100% !important;
 }
 </style>

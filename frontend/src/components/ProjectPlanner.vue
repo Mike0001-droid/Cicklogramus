@@ -68,11 +68,25 @@ export default {
       isUndoing: false
     }
   },
+  props: {
+    initialProjectId: {
+      type: Number,
+      default: null
+    }
+  },
   async mounted() {
     await this.loadWorkers();
     await this.loadProjects();
     this.generateTimeline();
     this.setupKeyboardShortcuts();
+
+    // Если указан initialProjectId, открываем этот проект
+    if (this.initialProjectId) {
+      const project = this.projects.find(p => p.id === this.initialProjectId);
+      if (project) {
+        await this.handleProjectChange(project);
+      }
+    }
   },
   watch: {
     currentProject: {
@@ -205,10 +219,15 @@ export default {
         this.saveCurrentProject(newProject);
         this.generateTimeline();
         this.showSuccess('Проект создан успешно');
+        this.$emit('projectCreated');
       } catch (error) {
         console.error('Ошибка создания проекта:', error);
         this.showError('Не удалось создать проект');
       }
+    },
+
+    createNewProject() {
+      this.addProject();
     },
 
     selectTask(task, event) {

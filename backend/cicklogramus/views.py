@@ -3,11 +3,13 @@ from .utils import export_gantt_chart, export_cyclogram_exact
 from .exceptions import NoTaskException
 from .models import Project, Task, Worker, OperationBlock
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from .serializers import (ProjectSerializer, ProjectListSerializer,
                           TaskSerializer, TaskListSerializer,
                           WorkerSerializer, OperationBlockSerializer)
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 
 class WorkerViewSet(viewsets.ModelViewSet):
@@ -134,4 +136,105 @@ class TaskViewSet(viewsets.ModelViewSet):
         try:
             return export_gantt_chart(pk)
         except NoTaskException as e:
-            return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": str(e)}, status=status.HTTP_404_NOT_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register(request):
+    """Регистрация нового пользователя"""
+    username = request.data.get('username')
+    password = request.data.get('password')
+    email = request.data.get('email', '')
+
+    # Валидация
+    if not username or not password:
+        return Response(
+            {'error': 'Имя пользователя и пароль обязательны'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if len(password) < 6:
+        return Response(
+            {'error': 'Пароль должен содержать минимум 6 символов'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Проверка существования пользователя
+    if User.objects.filter(username=username).exists():
+        return Response(
+            {'error': 'Пользователь с таким именем уже существует'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Создание пользователя
+    try:
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            email=email
+        )
+        return Response({
+            'message': 'Пользователь успешно создан',
+            'user_id': user.id
+        }, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response(
+            {'error': f'Ошибка при создании пользователя: {str(e)}'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_stats(request):
+    """Получение статистики текущего пользователя"""
+    user = request.user
+
+    # Считаем количество проектов и задач пользователя
+    projects_count = Project.objects.filter(created_by=user).count()
+    tasks_count = Task.objects.filter(project__created_by=user).count()
+
+    return Response({
+        'projects': projects_count,
+        'tasks': tasks_count
+    })
+
+
+@api_view(['GET', 'PUT'])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    """Получение и обновление профиля текущего пользователя"""
+    user = request.user
+
+    if request.method == 'GET':
+        return Response({
+            'username': user.username,
+            'email': user.email,
+            'date_joined': user.date_joined
+        })
+
+    elif request.method == 'PUT':
+        email = request.data.get('email', '')
+        password = request.data.get('password')
+
+        # Обновляем email если указан
+        if email:
+            user.email = email
+
+        # Обновляем пароль если указан
+        if password:
+            if len(password) < 6:
+                return Response(
+                    {'password': ['Пароль должен содержать минимум 6 символов']},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            user.set_password(password)
+
+        user.save()
+
+        return Response({
+            'username': user.username,
+            'email': user.email,
+            'message': 'Профиль успешно обновлен'
+        })

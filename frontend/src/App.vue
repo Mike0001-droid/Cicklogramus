@@ -1,16 +1,107 @@
 <template>
   <div id="app">
-    <ProjectPlanner />
+    <!-- Показываем страницу входа если не авторизованы -->
+    <Auth v-if="!isAuthenticated" @authSuccess="handleAuthSuccess" />
+
+    <!-- Показываем главное приложение если авторизованы -->
+    <div v-else class="main-container">
+      <header class="app-header">
+        <nav class="app-nav">
+          <button
+            @click="currentPage = 'projects'"
+            class="nav-btn"
+            :class="{ active: currentPage === 'projects' }"
+          >
+            Проекты
+          </button>
+          <button
+            @click="currentPage = 'profile'"
+            class="nav-btn"
+            :class="{ active: currentPage === 'profile' }"
+          >
+            Личный кабинет
+          </button>
+        </nav>
+        <div class="user-info">
+          <span class="username">{{ currentUser?.username || 'Пользователь' }}</span>
+          <button @click="handleLogout" class="logout-btn">Выйти</button>
+        </div>
+      </header>
+      <main class="app-main">
+        <ProjectPlanner
+          v-if="currentPage === 'projects'"
+          :initialProjectId="initialProjectId"
+          @projectCreated="handleProjectCreated"
+          ref="projectPlanner"
+        />
+        <Profile
+          v-if="currentPage === 'profile'"
+          @openProject="handleOpenProjectFromProfile"
+          @createProject="handleCreateProjectFromProfile"
+        />
+      </main>
+    </div>
   </div>
 </template>
 
 <script>
 import ProjectPlanner from './components/ProjectPlanner.vue'
+import Profile from './components/Profile.vue'
+import Auth from './components/Auth.vue'
+import { authService } from './services/api'
 
 export default {
   name: 'App',
   components: {
-    ProjectPlanner
+    ProjectPlanner,
+    Profile,
+    Auth
+  },
+  data() {
+    return {
+      isAuthenticated: false,
+      currentUser: null,
+      currentPage: 'projects',
+      initialProjectId: null
+    }
+  },
+  mounted() {
+    this.checkAuth()
+  },
+  methods: {
+    checkAuth() {
+      this.isAuthenticated = authService.isAuthenticated()
+      this.currentUser = authService.getCurrentUser()
+    },
+
+    handleAuthSuccess(user) {
+      this.isAuthenticated = true
+      this.currentUser = user
+    },
+
+    handleLogout() {
+      authService.logout()
+      this.isAuthenticated = false
+      this.currentUser = null
+    },
+
+    handleOpenProjectFromProfile(projectId) {
+      this.initialProjectId = projectId
+      this.currentPage = 'projects'
+    },
+
+    handleCreateProjectFromProfile() {
+      this.currentPage = 'projects'
+      setTimeout(() => {
+        if (this.$refs.projectPlanner) {
+          this.$refs.projectPlanner.createNewProject()
+        }
+      }, 100)
+    },
+
+    handleProjectCreated() {
+      console.log('Project created')
+    }
   }
 }
 </script>
@@ -35,6 +126,84 @@ html, body {
 #app {
   height: 100vh;
   width: 100vw;
+  overflow: hidden;
+}
+
+.main-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background: #ffffff;
+  color: #333;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  z-index: 100;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.username {
+  font-size: 14px;
+  color: #666;
+  margin-right: 15px;
+}
+
+.logout-btn {
+  background: #4a90e2;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background: #357abd;
+}
+
+.app-nav {
+  display: flex;
+  gap: 5px;
+  margin-right: auto;
+}
+
+.nav-btn {
+  background: transparent;
+  color: #666;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+.nav-btn:hover {
+  background: #f5f5f5;
+  color: #4a90e2;
+}
+
+.nav-btn.active {
+  background: #4a90e2;
+  color: white;
+}
+
+.nav-btn.active:hover {
+  background: #357abd;
+}
+
+.app-main {
+  flex: 1;
   overflow: hidden;
 }
 

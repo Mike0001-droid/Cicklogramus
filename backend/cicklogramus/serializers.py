@@ -1,6 +1,34 @@
 from django.db import models
 from rest_framework import serializers
 from .models import Project, Task, Worker, OperationBlock, OperationBlockItem
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth.models import User
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    """Кастомный сериализатор для JWT токена с дополнительными полями"""
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Добавляем пользовательскиеClaims
+        token['username'] = user.username
+        token['email'] = user.email
+
+        return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        # Добавляем информацию о пользователе в ответ
+        data['user'] = {
+            'id': self.user.id,
+            'username': self.user.username,
+            'email': self.user.email
+        }
+
+        return data
 
 
 class WorkerSerializer(serializers.ModelSerializer):
