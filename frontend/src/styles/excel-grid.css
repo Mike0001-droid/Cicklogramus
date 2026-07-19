@@ -1,0 +1,1516 @@
+.excel-grid-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  position: relative;
+}
+
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Панель масштабирования */
+.zoom-panel {
+  margin-top: 15px;
+  padding: 15px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.zoom-controls-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 15px;
+  align-items: end;
+}
+
+.zoom-slider-container {
+  grid-column: 1 / -1;
+}
+
+.zoom-slider {
+  flex: 1;
+  margin: 0 10px;
+}
+
+.zoom-presets {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.zoom-info {
+  grid-column: 1 / -1;
+  text-align: center;
+  margin-top: 5px;
+}
+
+.btn.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.excel-main-grid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: white;
+}   
+
+/* Заголовок таблицы с секундной шкалой */
+.excel-header {
+  display: flex;
+  background: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 40px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.excel-header-cell {
+  position: relative;
+  border-right: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #495057;
+  background: #f8f9fa;
+  flex-shrink: 0;
+  height: 100%;
+  transition: background-color 0.2s ease;
+  min-width: 80px !important; /* Базовый минимум */
+  overflow: hidden !important;
+}
+
+/* Заголовки колонок операций */
+.excel-header-cell:not(.gantt-header-cell) {
+  background: #e9ecef;
+  border-right: 1px solid #ced4da;
+}
+
+/* Секундная шкала в заголовке */
+.gantt-header-cell {
+  flex: 1;
+  background: #d1ecf1;
+  border-left: 2px solid #bee5eb;
+  border-right: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.time-scale-header {
+  display: flex;
+  height: 100%;
+  flex: 1;
+  overflow-x: auto;
+  min-width: min-content;
+}
+
+.time-scale-tick {
+  height: 100%;
+  border-right: 1px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #6c757d;
+  flex-shrink: 0;
+  position: relative;
+  background: white;
+  min-width: 5px;
+}
+
+.tick-label {
+  position: absolute;
+  bottom: 2px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Стили для разных тиков шкалы */
+.minute-tick {
+  background-color: #e9ecef !important;
+  font-weight: bold !important;
+  color: #495057 !important;
+  border-right: 2px solid #adb5bd !important;
+}
+
+.half-minute-tick {
+  background-color: #f8f9fa !important;
+  border-right: 1px solid #ced4da !important;
+  font-weight: bold;
+}
+
+.major-tick {
+  background-color: #f8f9fa !important;
+  border-right: 1px solid #dee2e6 !important;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-width: 0 !important; /* Сбрасываем минимальную ширину */
+  position: relative;
+}
+
+.header-title {
+  flex: 1;
+  min-width: 0 !important; /* Разрешаем сжатие */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 16px; /* Место для ползунка */
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.resize-handle {
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 24px;
+  background: #ced4da;
+  cursor: col-resize;
+  border-radius: 4px;
+  z-index: 100 !important; /* Повышаем z-index */
+  transition: all 0.2s ease;
+  opacity: 0.7;
+  border: 1px solid #adb5bd;
+  pointer-events: auto !important;
+}
+
+.resize-handle:hover {
+  background: #007bff;
+  opacity: 1;
+  width: 10px;
+  box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+}
+
+.gantt-controls {
+  display: flex;
+  gap: 4px;
+  padding: 0 8px;
+  background: #d1ecf1;
+  height: 100%;
+  align-items: center;
+  border-left: 1px solid #bee5eb;
+}
+
+.gantt-controls .btn {
+  padding: 2px 6px;
+  font-size: 12px;
+  border-radius: 3px;
+}
+
+/* Контейнер для тела таблицы с разделением на фиксированную и скроллируемую части */
+.excel-body-container {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  background: white;
+}
+
+
+.excel-body-left {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.excel-row-left {
+  display: flex;
+  border-bottom: 1px solid #dee2e6;
+  min-height: 45px;
+  box-sizing: border-box;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.excel-row-left:hover {
+  background: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 5;
+}
+
+.excel-row-left.selected-row,
+.excel-row-right.selected-row {
+  outline: 2px solid #0d6efd;
+  outline-offset: -2px;
+  background: #e7f1ff;
+  z-index: 6;
+}
+
+.excel-empty-row-left {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #6c757d;
+  font-style: italic;
+  height: 100px;
+  background: white;
+}
+
+/* Правая прокручиваемая часть */
+.excel-right-scrollable {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.excel-body-right {
+  min-width: min-content;
+  height: 100%;
+}
+
+.excel-row-right {
+  display: flex;
+  min-height: 45px;
+  border-bottom: 1px solid #dee2e6;
+  box-sizing: border-box;
+  background: inherit;
+}
+
+.excel-cell {
+  border-right: 1px solid #dee2e6;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  font-size: 14px;
+  height: 45px;
+  background: inherit;
+  min-width: 80px !important;
+  overflow: hidden !important;
+}
+
+.excel-cell > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* Особенно для форм */
+.excel-cell input,
+.excel-cell select,
+.excel-cell .form-control,
+.excel-cell .form-select,
+.excel-cell .form-control-sm,
+.excel-cell .form-select-sm {
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Для бейджей зависимостей */
+.dependency-badge,
+.dependency-badge .badge {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.gantt-cell {
+  flex: 0 0 auto;
+  background: #f8f9fa;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  border-right: none;
+}
+
+/* Горизонтальный скроллбар */
+.horizontal-scroll-container {
+  height: 16px;
+  background: #f1f1f1;
+  border-top: 1px solid #dee2e6;
+  padding: 2px 10px;
+  display: flex;
+  align-items: center;
+}
+
+.horizontal-scroll-track {
+  flex: 1;
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.horizontal-scroll-thumb {
+  height: 100%;
+  background: #6c757d;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  min-width: 50px;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.horizontal-scroll-thumb:hover {
+  background: #495057;
+}
+
+/* Сообщение при отсутствии данных */
+.excel-empty-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #6c757d;
+  font-style: italic;
+  height: 100px;
+  background: white;
+}
+
+.empty-message {
+  text-align: center;
+  font-size: 16px;
+}
+
+/* Excel-дисплей */
+.excel-display {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f8f9fa;
+  border: 2px solid #007bff;
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+  z-index: 10000;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  max-width: 500px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: none;
+  backdrop-filter: blur(10px);
+}
+
+.excel-display.show {
+  display: block;
+  animation: excelSlideDown 0.3s ease-out;
+}
+
+@keyframes excelSlideDown {
+  from {
+    top: -50px;
+    opacity: 0;
+  }
+  to {
+    top: 20px;
+    opacity: 1;
+  }
+}
+
+/* Уведомления */
+.export-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 300px;
+  max-width: 400px;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Модальные окна */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Стили для скроллбаров */
+.time-scale-header::-webkit-scrollbar,
+.excel-right-scrollable::-webkit-scrollbar {
+  height: 6px;
+}
+
+.time-scale-header::-webkit-scrollbar-track,
+.excel-right-scrollable::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.time-scale-header::-webkit-scrollbar-thumb,
+.excel-right-scrollable::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.time-scale-header::-webkit-scrollbar-thumb:hover,
+.excel-right-scrollable::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.horizontal-scroll-track::-webkit-scrollbar {
+  height: 0px; /* Скрываем стандартный скроллбар */
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .control-panel {
+    padding: 15px;
+  }
+  
+  .controls-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .zoom-controls-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .zoom-presets {
+    justify-content: center;
+  }
+  
+  .excel-header-cell {
+    padding: 0 8px;
+    font-size: 12px;
+  }
+  
+  .header-title {
+    font-size: 11px;
+    padding-right: 8px;
+  }
+  
+  .excel-cell {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  
+  .gantt-controls {
+    padding: 0 4px;
+  }
+  
+  .gantt-controls .btn {
+    padding: 1px 4px;
+    font-size: 10px;
+  }
+  
+  .time-scale-tick {
+    font-size: 9px;
+  }
+  
+  .excel-body-container {
+    flex-direction: column;
+  }
+
+  
+  .excel-right-scrollable {
+    flex: 1;
+  }
+}
+
+/* Стили для состояния загрузки */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.2em;
+}
+
+/* Утилитарные классы */
+.text-muted {
+  color: #6c757d !important;
+}
+
+.small {
+  font-size: 0.875em;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
+.gap-3 {
+  gap: 1rem;
+}
+
+.mt-3 {
+  margin-top: 1rem;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.p-3 {
+  padding: 1rem;
+}
+
+.rounded {
+  border-radius: 0.375rem;
+}
+
+.bg-light {
+  background-color: #f8f9fa !important;
+}
+
+/* Стили для ползунка масштабирования */
+.form-range.zoom-slider {
+  height: 1.5rem;
+  padding: 0;
+}
+
+.form-range.zoom-slider:focus {
+  outline: none;
+}
+
+.form-range.zoom-slider::-webkit-slider-thumb {
+  background: #007bff;
+  border: none;
+  height: 1rem;
+  width: 1rem;
+  margin-top: -0.375rem;
+}
+
+.form-range.zoom-slider::-moz-range-thumb {
+  background: #007bff;
+  border: none;
+  height: 1rem;
+  width: 1rem;
+}
+
+.form-range.zoom-slider::-webkit-slider-track {
+  background: #dee2e6;
+  height: 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.form-range.zoom-slider::-moz-range-track {
+  background: #dee2e6;
+  height: 0.25rem;
+  border-radius: 0.25rem;
+  border: none;
+}
+
+/* Стили для модального окна зависимостей */
+.dropdown-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dropdown-content {
+  background: white;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  animation: slideIn 0.2s ease;
+  z-index: 10001;
+}
+
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.dropdown-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: #f8f9fa;
+  position: relative;
+}
+
+.dropdown-header h6 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: #495057;
+}
+
+.dropdown-header small {
+  color: #6c757d;
+  display: block;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6c757d;
+  line-height: 1;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  color: #495057;
+  background: rgba(0,0,0,0.1);
+  border-radius: 50%;
+}
+
+.dropdown-body {
+  padding: 1.5rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.section-title {
+  margin-bottom: 1rem;
+  color: #495057;
+}
+
+.dependency-list {
+  margin-top: 1rem;
+}
+
+.dependency-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  background: #f8f9fa;
+}
+
+.dependency-info {
+  flex: 1;
+}
+
+.dependency-info strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #495057;
+}
+
+.dependency-details {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+
+.time-info, .duration-info {
+  color: #6c757d;
+}
+
+.no-dependencies {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 2rem;
+}
+
+.dropdown-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  justify-content: flex-end;
+  background: #f8f9fa;
+}
+
+/* Стили для модального окна выбора операций (без затемнения фона) */
+.modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+.modal-content-no-overlay {
+  background: white;
+  padding: 0;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+  border: 1px solid #dee2e6;
+  pointer-events: auto;
+  animation: modalSlideIn 0.3s ease-out;
+  position: relative;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: #f8f9fa;
+  border-radius: 8px 8px 0 0;
+}
+
+.modal-header h5 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #495057;
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 1.5rem;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 0 0 8px 8px;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6c757d;
+  line-height: 1;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  color: #495057;
+  background: rgba(0,0,0,0.1);
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .modal-content-no-overlay {
+    width: 95vw;
+    max-height: 85vh;
+    margin: 10px;
+  }
+  
+  .modal-header {
+    padding: 1rem 1.25rem 0.75rem;
+  }
+  
+  .modal-header h5 {
+    font-size: 1.1rem;
+  }
+  
+  .modal-body {
+    padding: 1.25rem;
+  }
+  
+  .modal-footer {
+    padding: 0.75rem 1.25rem;
+    flex-direction: column;
+  }
+  
+  .modal-footer .btn {
+    width: 100%;
+  }
+}
+
+/* Для очень маленьких экранов */
+@media (max-height: 600px) {
+  .modal-content-no-overlay {
+    max-height: 90vh;
+  }
+  
+  .modal-body {
+    max-height: 60vh;
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+.modal-content {
+  background: white; /* Добавляем белый фон */
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: modal-appear 0.2s ease-out;
+  border: 1px solid #dee2e6; /* Добавляем границу для четкости */
+}
+
+.modal-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8f9fa; /* Легкий фон для заголовка */
+  border-radius: 8px 8px 0 0;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #333; /* Темный цвет текста */
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 1.5rem;
+  background: white; /* Белый фон для тела */
+  color: #333; /* Темный цвет текста */
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  background-color: #f8f9fa; /* Легкий фон для футера */
+  border-radius: 0 0 8px 8px;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 0.7;
+  color: #666;
+}
+
+.btn-close:hover {
+  opacity: 1;
+  color: #333;
+}
+
+@keyframes modal-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.d-grid {
+  display: grid;
+}
+
+.gap-2 {
+  gap: 1rem;
+}
+
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
+  border: 1px solid transparent; /* Четкие границы кнопок */
+}
+
+/* Убедитесь, что кнопки имеют хорошую контрастность */
+.btn-outline-success {
+  color: #198754;
+  border-color: #198754;
+}
+
+.btn-outline-success:hover {
+  color: white;
+  background-color: #198754;
+}
+
+.btn-outline-secondary {
+  color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+  color: white;
+  background-color: #6c757d;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+/* Более специфичные стили для модального окна */
+.modal-overlay .modal-content {
+  background: white !important;
+  color: #333 !important;
+}
+
+.modal-overlay .modal-body {
+  background: white !important;
+  color: #333 !important;
+}
+
+/* Убедитесь, что текст хорошо читается */
+.modal-overlay * {
+  color: #333 !important;
+}
+/* Стили для ячейки действий */
+.actions-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.actions-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex-wrap: nowrap; /* Запрещаем перенос на новую строку */
+  white-space: nowrap;
+}
+
+.action-btn {
+  padding: 2px 4px;
+  min-width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; /* Запрещаем сжатие кнопок */
+  border: 1px solid #dee2e6;
+  background: #f8f9fa;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+/* Контейнер для белого квадрата иконки удаления */
+.action-btn .icon-delete-container {
+  background: white;
+  border-radius: 2px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+/* Сам символ крестика внутри квадрата */
+.action-btn .icon-delete-symbol {
+  color: #000000;
+  font-size: 20px;
+  line-height: 1;
+  text-align: center;
+  transform: translateY(-1px);
+}
+
+/* Контейнер для белого квадрата иконки добавления */
+.action-btn .icon-add-container {
+  background: white;
+  border-radius: 2px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+/* Сам символ плюса внутри квадрата */
+.action-btn .icon-add-symbol {
+  color: #000000;
+  font-size: 30px;
+  line-height: 1;
+  text-align: center;
+  transform: translateY(-3px);
+}
+
+/* Стили для кнопки удаления зависимости */
+.dependency-delete-btn {
+  padding: 2px 6px;
+  min-width: auto;
+  height: auto;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+.task-type-modal {
+  max-width: 480px;
+}
+
+.modal-header {
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid #e9ecef; /* Легкая разделительная линия */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white; /* Белый фон вместо градиента */
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #333; /* Темный цвет текста */
+}
+
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 0.7;
+  color: #6c757d; /* Серый цвет вместо белого */
+  transition: opacity 0.2s;
+}
+.btn-close:hover {
+  opacity: 1;
+  color: #333; /* Темнее при наведении */
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.modal-description {
+  text-align: center;
+  color: #6c757d;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.task-type-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.task-type-btn {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.task-type-btn:hover {
+  border-color: #007bff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+}
+
+.new-task-btn:hover {
+  border-color: #28a745;
+  box-shadow: 0 8px 25px rgba(40, 167, 69, 0.15);
+}
+
+.existing-task-btn:hover {
+  border-color: #6c757d;
+  box-shadow: 0 8px 25px rgba(108, 117, 125, 0.15);
+}
+
+.task-icon {
+  font-size: 2rem;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.task-type-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.task-type-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.task-type-description {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: center;
+  background: #f8f9fa;
+  border-radius: 0 0 12px 12px;
+}
+
+.btn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+/* Анимации */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 576px) {
+  .modal-content {
+    width: 95%;
+    margin: 1rem;
+  }
+  
+  .modal-body {
+    padding: 1.5rem;
+  }
+  
+  .task-type-btn {
+    padding: 1.25rem;
+  }
+
+  .task-icon {
+    font-size: 1.75rem;
+  }
+}
+
+/* Стили для SweetAlert палитры цветов */
+.color-swal-popup {
+  width: auto !important;
+  padding: 20px !important;
+}
+
+.color-swal-palette {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 15px 0;
+  justify-items: center;
+}
+
+.color-swal-btn {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.color-swal-btn:hover {
+  transform: scale(1.1);
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Drag and Drop стили */
+.excel-row-left.dragging,
+.excel-row-right.dragging {
+  opacity: 0.8;
+  transform: scale(1.02) rotate(2deg);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4), 0 0 0 2px #007bff;
+  z-index: 1000;
+  cursor: grabbing !important;
+  background: linear-gradient(135deg, rgba(0,123,255,0.1), rgba(0,123,255,0.05));
+  transition: all 0.2s ease-out;
+}
+
+.excel-row-left[draggable="true"],
+.excel-row-right[draggable="true"] {
+  cursor: grab;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.excel-row-left[draggable="true"]:hover,
+.excel-row-right[draggable="true"]:hover {
+  box-shadow: 0 3px 12px rgba(0,123,255,0.2);
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(0,123,255,0.03), rgba(0,123,255,0.01));
+}
+
+.excel-row-left[draggable="true"]:active,
+.excel-row-right[draggable="true"]:active {
+  cursor: grabbing;
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* Индикатор места вставки при перетаскивании */
+.drag-insert-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #007bff, #28a745);
+  z-index: 1001;
+  pointer-events: none;
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(0,123,255,0.5);
+  animation: pulse 1.5s infinite;
+}
+
+.drag-insert-indicator.top {
+  top: -2px;
+}
+
+.drag-insert-indicator.bottom {
+  bottom: -2px;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* Эффект при наведении на целевую строку */
+.excel-row-left.drag-over,
+.excel-row-right.drag-over {
+  background: linear-gradient(135deg, rgba(40,167,69,0.1), rgba(0,123,255,0.1)) !important;
+  border: 2px dashed #28a745;
+  animation: borderPulse 1s infinite;
+}
+
+@keyframes borderPulse {
+  0% { border-color: #28a745; }
+  50% { border-color: #007bff; }
+  100% { border-color: #28a745; }
+}
+
+/* Предотвращение выделения текста при перетаскивании */
+.dragging * {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Индикаторы зависимостей */
+.task-has-dependencies {
+  position: relative;
+}
+
+.task-has-dependencies::after {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  background: #28a745;
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
+  animation: dependencyPulse 2s infinite;
+}
+
+@keyframes dependencyPulse {
+  0%, 100% { opacity: 0.7; transform: translateY(-50%) scale(1); }
+  50% { opacity: 1; transform: translateY(-50%) scale(1.2); }
+}
+
+/* Эффект при перетаскивании задач с зависимостями */
+.task-has-dependencies.dragging {
+  box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4), 0 0 0 3px rgba(40, 167, 69, 0.3);
+}
+
+.task-has-dependencies.drag-over {
+  background: linear-gradient(135deg, rgba(40,167,69,0.15), rgba(0,123,255,0.1)) !important;
+  border: 2px dashed #28a745;
+  animation: dependencyBorderPulse 1s infinite;
+}
+
+@keyframes dependencyBorderPulse {
+  0% { border-color: #28a745; box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.5); }
+  50% { border-color: #007bff; box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2); }
+  100% { border-color: #28a745; box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.5); }
+}

@@ -1,0 +1,333 @@
+.gantt-container {
+  height: 100%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.controls-panel {
+  background: white;
+  border: 1px solid #dee2e6;
+  margin-bottom: 15px;
+}
+
+.gantt-chart {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 390px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+/* ЗАГОЛОВОК ДИАГРАММЫ */
+.gantt-header {
+  display: flex;
+  background: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  font-weight: bold;
+  height: 42px;
+  flex-shrink: 0;
+}
+
+.gantt-header-label {
+  width: 250px;
+  min-width: 250px;
+  padding: 12px 15px;
+  background: #f8f9fa;
+  border-right: 2px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.gantt-timeline-header {
+  display: flex;
+  flex: 1;
+  overflow-x: auto;
+  min-width: min-content;
+}
+
+/* ТЕЛО ДИАГРАММЫ */
+.gantt-body {
+  flex: 1;
+  overflow: auto;
+  background: white;
+}
+
+/* СТРОКИ - ВЫРАВНИВАЕМ С ТАБЛИЦЕЙ */
+.gantt-row {
+  display: flex;
+  border-bottom: 1px solid #e9ecef;
+  height: 49px;
+  min-height: 49px;
+  align-items: center;
+  position: relative;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* ФИКСИРОВАННАЯ ЛЕВАЯ КОЛОНКА */
+.gantt-task-info {
+  width: 250px;
+  min-width: 250px;
+  padding: 8px 15px;
+  background: white;
+  border-right: 2px solid #dee2e6;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  flex-shrink: 0;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.task-name {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-worker {
+  font-size: 12px;
+  color: #6c757d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ОБЛАСТЬ ВРЕМЕННОЙ ШКАЛЫ */
+.gantt-timeline {
+  flex: 1;
+  display: flex;
+  position: relative;
+  height: 100%;
+  align-items: center;
+  min-width: min-content;
+  overflow-x: auto;
+}
+
+/* СЕКУНДЫ НА ШКАЛЕ */
+.gantt-second {
+  min-width: 5px;
+  padding: 12px 2px;
+  text-align: center;
+  border-right: 1px solid #e9ecef;
+  font-size: 10px;
+  color: #6c757d;
+  flex-shrink: 0;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* Стили для разных тиков шкалы */
+.gantt-minute-tick {
+  background-color: #e9ecef !important;
+  font-weight: bold !important;
+  color: #495057 !important;
+  border-right: 3px solid #adb5bd !important;
+}
+
+.gantt-half-minute-tick {
+  background-color: #f8f9fa !important;
+  border-right: 2px solid #ced4da !important;
+  font-weight: bold;
+}
+
+.gantt-major-tick {
+  background-color: #f8f9fa !important;
+  border-right: 1px solid #ced4da !important;
+}
+
+.gantt-medium-tick {
+  background-color: #fdfdfd !important;
+  border-right: 1px solid #e9ecef !important;
+}
+
+/* БАРЫ ЗАДАЧ - БЕЗ АНИМАЦИИ */
+.gantt-bar {
+  position: absolute;
+  height: 35px;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  min-width: 20px;
+  top: 7px;
+}
+
+.gantt-bar-label {
+  padding: 2px 6px;
+  flex-grow: 1;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+  min-width: max-content;
+  overflow: hidden;
+}
+
+.gantt-bar-name {
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11px;
+}
+
+.gantt-bar-worker {
+  opacity: 0.9;
+  margin-bottom: 1px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 10px;
+}
+
+.gantt-bar-time {
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 9px;
+}
+
+/* Полосы прокрутки */
+.gantt-timeline-header::-webkit-scrollbar,
+.gantt-timeline::-webkit-scrollbar {
+  height: 6px;
+}
+
+.gantt-body::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.gantt-timeline-header::-webkit-scrollbar-track,
+.gantt-timeline::-webkit-scrollbar-track,
+.gantt-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.gantt-timeline-header::-webkit-scrollbar-thumb,
+.gantt-timeline::-webkit-scrollbar-thumb,
+.gantt-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.gantt-timeline-header::-webkit-scrollbar-thumb:hover,
+.gantt-timeline::-webkit-scrollbar-thumb:hover,
+.gantt-body::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .gantt-task-info {
+    width: 150px;
+    min-width: 150px;
+    padding: 6px 10px;
+  }
+  
+  .task-name {
+    font-size: 12px;
+  }
+  
+  .task-worker {
+    font-size: 10px;
+  }
+  
+  .gantt-row {
+    height: 45px;
+    min-height: 45px;
+  }
+  
+  .gantt-bar {
+    height: 32px;
+    top: 6px;
+  }
+}
+
+/* EXCEL-ПОДОБНОЕ ПОЛЕ ДЛЯ ОТОБРАЖЕНИЯ ПОЛНОГО НАЗВАНИЯ */
+.excel-display {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f8f9fa;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+  z-index: 10000;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  max-width: 500px;
+  min-width: 300px;
+  white-space: normal; /* Разрешаем перенос текста */
+  word-wrap: break-word; /* Перенос длинных слов */
+  word-break: break-word; /* Перенос слов если нужно */
+  overflow-wrap: break-word; /* Современный перенос */
+  line-height: 1.4; /* Увеличиваем межстрочный интервал */
+  text-align: center; /* Центрируем текст */
+  display: none;
+}
+
+.excel-display.show {
+  display: block;
+  animation: excelSlideDown 0.2s ease-out;
+}
+
+@keyframes excelSlideDown {
+  from {
+    top: -50px;
+    opacity: 0;
+  }
+  to {
+    top: 10px;
+    opacity: 1;
+  }
+}
+
+/* Адаптивность для очень длинных текстов */
+@media (max-width: 600px) {
+  .excel-display {
+    max-width: 90vw;
+    min-width: 250px;
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+}
+
+/* Дополнительные стили для очень длинных названий */
+.excel-display.long-text {
+  max-width: 600px;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.excel-display.very-long-text {
+  max-width: 700px;
+  font-size: 12px;
+  line-height: 1.2;
+}

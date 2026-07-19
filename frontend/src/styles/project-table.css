@@ -1,0 +1,66 @@
+.table td {
+  vertical-align: middle;
+  padding: 10px 8px;
+}
+
+.form-control-color {
+  padding: 2px;
+}
+
+.worker-color-input {
+  cursor: pointer;
+}
+
+.color-preview {
+  display: inline-block;
+}
+
+.task-table {
+  height: 100%;
+  overflow: auto;
+}
+
+.task-row {
+  height: 45px;
+  min-height: 45px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.excel-display {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f8f9fa;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  max-width: 400px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: none;
+}
+
+.excel-display.show {
+  display: block;
+  animation: excelSlideDown 0.2s ease-out;
+}
+
+@keyframes excelSlideDown {
+  from {
+    top: -50px;
+    opacity: 0;
+  }
+  to {
+    top: 10px;
+    opacity: 1;
+  }
+}

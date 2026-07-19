@@ -1,0 +1,11 @@
+.workers-legend {
+  background: white;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.workers-legend .badge {
+  font-size: 12px;
+  padding: 6px 10px;
+}

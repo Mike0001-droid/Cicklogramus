@@ -1,0 +1,66 @@
+/* Глобальные стили для приложения */
+.project-planner {
+  height: 100vh;
+  background: #f5f5f5;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container-fluid {
+  padding: 0;
+}
+
+.h-100 {
+  height: 100%;
+}
+
+/* Bootstrap-like utility classes */
+.row {
+  margin: 0;
+}
+
+.col-12 {
+  padding: 0;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Focus styles */
+*:focus {
+  outline: none;
+}
+
+/* Selection styles */
+::selection {
+  background: #007bff;
+  color: white;
+}
+
+/* Print styles */
+@media print {
+  .control-panel,
+  .excel-header {
+    display: none !important;
+  }
+  
+  .excel-grid-container {
+    height: auto;
+  }
+}

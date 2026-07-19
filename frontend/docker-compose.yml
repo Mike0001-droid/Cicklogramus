@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NGINX_CONF: nginx.standalone.conf
+    container_name: cicklogram_frontend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
