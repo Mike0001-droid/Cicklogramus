@@ -45,7 +45,10 @@
     <!-- Основной контент -->
     <main class="main-content">
       <div class="content-header">
-        <h1>Проекты</h1>
+        <div class="content-header-left">
+          <button @click="$emit('openSidebar')" class="menu-btn me-2">☰</button>
+          <h1>Проекты</h1>
+        </div>
         <button @click="createNewProject" class="btn-new-project">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
             <path d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2z"/>
@@ -165,6 +168,7 @@ import { authService, projectService } from '../services/api';
 
 export default {
   name: 'Profile',
+  emits: ['openProject', 'createProject', 'openSidebar'],
   data() {
     return {
       currentUser: null,
@@ -337,7 +341,7 @@ export default {
 /* Боковая панель */
 .sidebar {
   width: 280px;
-  background: #292961;
+  background: linear-gradient(180deg, #0d6efd 0%, #0a5cd4 100%);
   color: white;
   display: flex;
   flex-direction: column;
@@ -346,20 +350,21 @@ export default {
 
 .sidebar-user {
   padding: 32px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .user-avatar {
   width: 64px;
   height: 64px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 8px;
+  background: linear-gradient(135deg, #1e7fff 0%, #0d6efd 100%);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
 }
 
 .user-details h3 {
@@ -413,7 +418,7 @@ export default {
 .nav-item.active {
   background: rgba(255, 255, 255, 0.15);
   color: white;
-  border-left: 3px solid #667eea;
+  border-left: 3px solid #ffffff;
 }
 
 .nav-item svg {
@@ -464,6 +469,12 @@ export default {
   align-items: center;
 }
 
+.content-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .content-header h1 {
   font-size: 24px;
   font-weight: 600;
@@ -476,7 +487,7 @@ export default {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: #4a90e2;
+  background: #0d6efd;
   color: white;
   border: none;
   border-radius: 6px;
@@ -487,9 +498,9 @@ export default {
 }
 
 .btn-new-project:hover {
-  background: #357abd;
+  background: #0b5ed7;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+  box-shadow: 0 6px 16px rgba(13, 110, 253, 0.35);
 }
 
 /* Список проектов */
@@ -513,16 +524,16 @@ export default {
 }
 
 .project-card:hover {
-  border-color: #4a90e2;
-  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.15);
+  border-color: #0d6efd;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.15);
   transform: translateX(4px);
 }
 
 .project-icon {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 8px;
+  background: linear-gradient(135deg, #1e7fff 0%, #0d6efd 100%);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -530,6 +541,7 @@ export default {
   font-weight: 600;
   color: white;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2);
 }
 
 .project-info {
@@ -570,7 +582,7 @@ export default {
 }
 
 .project-card:hover .project-arrow {
-  color: #4a90e2;
+  color: #0d6efd;
   transform: translateX(4px);
 }
 
@@ -588,7 +600,7 @@ export default {
   width: 40px;
   height: 40px;
   border: 3px solid #e0e0e0;
-  border-top-color: #4a90e2;
+  border-top-color: #0d6efd;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 16px;
@@ -707,8 +719,8 @@ export default {
 
 .form-group .form-control:focus {
   outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
 }
 
 .form-group .form-control:disabled {
@@ -761,12 +773,12 @@ export default {
 }
 
 .btn-primary {
-  background: #4a90e2;
+  background: #0d6efd;
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #357abd;
+  background: #0b5ed7;
 }
 
 .btn-primary:disabled {
@@ -791,5 +803,20 @@ export default {
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   display: inline-block;
+}
+
+.menu-btn {
+  font-size: 24px;
+  color: #0d6efd;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.menu-btn:hover {
+  background: #f5f5f5;
 }
 </style>

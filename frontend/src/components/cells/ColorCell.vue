@@ -29,6 +29,7 @@ export default {
   emits: ['workerColorUpdated'],
   data() {
     return {
+      showColorPicker: false,
       colorPalette: [
         '#FF6B6B', '#FF8E53', '#FF9F43', '#FFE066', '#A8E6CF', '#78C5A8',
         '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF'
@@ -50,14 +51,6 @@ export default {
       return this.currentWorker ?
         `Исполнитель: ${this.currentWorker.name}\nЦвет: ${this.currentWorker.color}\nНажмите для изменения цвета` :
         'Исполнитель не найден';
-    }
-  },
-  data() {
-    return {
-      colorPalette: [
-        '#FF6B6B', '#FF8E53', '#FF9F43', '#FFE066', '#A8E6CF', '#78C5A8',
-        '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF'
-      ]
     }
   },
   methods: {
@@ -214,6 +207,33 @@ export default {
 .color-picker-footer .btn {
   font-size: 12px;
   padding: 4px 12px;
+}
+
+/* SweetAlert стили для палитры цветов */
+:global(.color-swal-palette) {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 12px;
+}
+
+:global(.color-swal-btn) {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+:global(.color-swal-btn:hover) {
+  transform: scale(1.1);
+  border-color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+:global(.color-swal-popup) {
+  padding: 20px !important;
 }
 
 </style>

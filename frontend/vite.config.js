@@ -10,7 +10,64 @@ export default defineConfig({
       '/api': {
         target: process.env.VUE_APP_API_URL || 'http://localhost:8000',
         changeOrigin: true,
-        secure: false
+        secure: false,
+        ws: true,
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            proxyReq.setHeader('X-Forwarded-Host', req.headers.host || 'localhost:3000')
+          })
+        }
+      },
+      '/admin': {
+        target: process.env.VUE_APP_API_URL || 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            proxyReq.setHeader('X-Forwarded-Host', req.headers.host || 'localhost:3000')
+          })
+        }
+      },
+      '/static': {
+        target: process.env.VUE_APP_API_URL || 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            proxyReq.setHeader('X-Forwarded-Host', req.headers.host || 'localhost:3000')
+          })
+        }
+      },
+      '/media': {
+        target: process.env.VUE_APP_API_URL || 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            proxyReq.setHeader('X-Forwarded-Host', req.headers.host || 'localhost:3000')
+          })
+        }
+      },
+      '/swagger': {
+        target: process.env.VUE_APP_API_URL || 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            proxyReq.setHeader('X-Forwarded-Host', req.headers.host || 'localhost:3000')
+          })
+        }
+      },
+      '/redoc': {
+        target: process.env.VUE_APP_API_URL || 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            proxyReq.setHeader('X-Forwarded-Host', req.headers.host || 'localhost:3000')
+          })
+        }
       }
     }
   }

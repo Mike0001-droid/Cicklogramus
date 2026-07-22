@@ -30,6 +30,7 @@
             @selectTask="selectTask"
             @createOperationBlock="createOperationBlock"
             @update:pixelsPerSecond="pixelsPerSecond = $event"
+            @openSidebar="$emit('openSidebar')"
             :selectedTaskId="selectedTaskId"
             :selectedTaskIds="selectedTaskIds"
           />
@@ -204,7 +205,22 @@ export default {
     },
 
     async addProject() {
-      const name = prompt('Введите название проекта:');
+      const { value: name } = await Swal.fire({
+        title: 'Создать проект',
+        text: 'Введите название проекта:',
+        input: 'text',
+        inputPlaceholder: 'Название проекта',
+        showCancelButton: true,
+        confirmButtonText: 'Создать',
+        cancelButtonText: 'Отмена',
+        confirmButtonColor: '#0d6efd',
+        inputValidator: (value) => {
+          if (!value) {
+            return 'Введите название проекта!'
+          }
+        }
+      });
+
       if (!name) return;
 
       try {
@@ -493,9 +509,9 @@ export default {
           }
         },
         showCancelButton: true,
-        confirmButtonText: 'Далее',
+        confirmButtonText: 'Создать',
         cancelButtonText: 'Отмена',
-        confirmButtonColor: '#007bff',
+        confirmButtonColor: '#0d6efd',
         cancelButtonColor: '#6c757d'
       });
 
@@ -503,37 +519,10 @@ export default {
 
       const name = nameResult.value;
 
-      // Ввод кода исполнителя
-      const labelResult = await Swal.fire({
-        title: 'Добавить исполнителя',
-        text: 'Введите код исполнителя (2-5 символов):',
-        input: 'text',
-        inputPlaceholder: 'Код исполнителя',
-        inputValidator: (value) => {
-          if (!value) {
-            return 'Код исполнителя обязателен!';
-          }
-          if (value.length < 2 || value.length > 5) {
-            return 'Код исполнителя должен быть от 2 до 5 символов!';
-          }
-        },
-        showCancelButton: true,
-        confirmButtonText: 'Создать',
-        cancelButtonText: 'Отмена',
-        confirmButtonColor: '#28a745',
-        cancelButtonColor: '#6c757d'
-      });
-
-      if (!labelResult.isConfirmed) return;
-
-      const label = labelResult.value;
-      
       try {
         await workerService.createWorker({
           name: name,
-          label: label,
-          color: getRandomColor(),
-          note: ''
+          color: getRandomColor()
         });
         await this.loadWorkers();
         this.showSuccess('Исполнитель создан успешно');

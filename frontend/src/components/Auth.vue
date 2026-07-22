@@ -118,7 +118,7 @@
           {{ registerError }}
         </div>
 
-        <button type="submit" class="btn btn-success w-100" :disabled="isLoading">
+        <button type="submit" class="btn btn-primary w-100" :disabled="isLoading">
           <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
           {{ isLoading ? 'Регистрация...' : 'Зарегистрироваться' }}
         </button>
@@ -297,11 +297,11 @@ export default {
 }
 
 .auth-tabs .nav-link:hover {
-  color: #4a90e2;
+  color: #0d6efd;
 }
 
 .auth-tabs .nav-link.active {
-  color: #4a90e2;
+  color: #0d6efd;
 }
 
 .auth-tabs .nav-link.active::after {
@@ -311,7 +311,7 @@ export default {
   left: 0;
   right: 0;
   height: 2px;
-  background: #4a90e2;
+  background: #0d6efd;
 }
 
 .auth-form .form-label {
@@ -329,8 +329,8 @@ export default {
 }
 
 .auth-form .form-control:focus {
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
 }
 
 .btn {
@@ -342,14 +342,14 @@ export default {
 }
 
 .btn-primary {
-  background: #4a90e2;
+  background: #0d6efd;
   border: none;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #357abd;
+  background: #0a5cd4;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(74, 144, 226, 0.4);
+  box-shadow: 0 8px 20px rgba(13, 110, 253, 0.4);
 }
 
 .btn-success {

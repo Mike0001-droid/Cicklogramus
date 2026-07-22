@@ -31,6 +31,7 @@
     <!-- Панель управления -->
     <div class="control-panel">
       <div class="header-row mb-3">
+        <button @click="$emit('openSidebar')" class="menu-btn me-2">☰</button>
         <h3 class="mb-0">Циклограммус</h3>
       </div>
 
@@ -112,8 +113,7 @@
       </div>
 
       <!-- Список проектов -->
-      <div class="mb-3">
-        <label class="form-label">Текущий проект:</label>
+      <div class="mb-3 mt-4">
         <select
           :value="currentProject?.id"
           @change="handleProjectChange($event.target.value)"
@@ -354,11 +354,7 @@
               </div>
             </div>
             
-            <div v-if="!currentProject.tasks || currentProject.tasks.length === 0" class="excel-empty-row-left">
-              <div class="empty-message">
-                Нет операций. Добавьте первую операцию!
-              </div>
-            </div>
+            
           </div>
         </div>
 
@@ -516,7 +512,8 @@ export default {
     'exportToExcel',
     'selectTask',
     'clearSelection',
-    'createOperationBlock'
+    'createOperationBlock',
+    'openSidebar'
   ],
   data() {
     return {
@@ -1537,4 +1534,16 @@ export default {
 
 <style scoped>
 @import '../styles/excel-grid.css';
+
+.menu-btn {
+  font-size: 24px;
+  color: #0d6efd;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.menu-btn:hover {
+  background: #f5f5f5;
+}
 </style>

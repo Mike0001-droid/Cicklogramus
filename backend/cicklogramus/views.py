@@ -9,6 +9,7 @@ from .serializers import (ProjectSerializer, ProjectListSerializer,
                           WorkerSerializer, OperationBlockSerializer)
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
+from django.contrib.auth import logout
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 
@@ -238,3 +239,15 @@ def user_profile(request):
             'email': user.email,
             'message': 'Профиль успешно обновлен'
         })
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def logout_view(request):
+    """Выход из системы - завершает Django сессию"""
+    # Завершаем Django сессию (удаляем сессионные куки)
+    logout(request)
+
+    return Response({
+        'message': 'Вы успешно вышли из системы'
+    }, status=status.HTTP_200_OK)

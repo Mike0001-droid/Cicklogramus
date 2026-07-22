@@ -5,39 +5,61 @@
 
     <!-- Показываем главное приложение если авторизованы -->
     <div v-else class="main-container">
-      <header class="app-header">
-        <nav class="app-nav">
+      <!-- Оверлей для шторки -->
+      <div
+        v-if="isSidebarOpen"
+        class="sidebar-overlay"
+        @click="closeSidebar"
+      ></div>
+
+      <!-- Боковая шторка -->
+      <aside class="sidebar" :class="{ open: isSidebarOpen }">
+        <div class="sidebar-header">
+          <button @click="closeSidebar" class="close-btn">×</button>
+        </div>
+        <nav class="sidebar-nav">
           <button
-            @click="currentPage = 'projects'"
-            class="nav-btn"
-            :class="{ active: currentPage === 'projects' }"
+            @click="goToProjects"
+            class="sidebar-link"
           >
-            Проекты
+            Редактор
           </button>
+          <a
+            href="/admin/"
+            class="sidebar-link"
+            @click="closeSidebar"
+            target="_self"
+          >
+            Админка
+          </a>
           <button
-            @click="currentPage = 'profile'"
-            class="nav-btn"
-            :class="{ active: currentPage === 'profile' }"
+            @click="goToProfile"
+            class="sidebar-link"
           >
             Личный кабинет
           </button>
+          <button
+            @click="handleLogout"
+            class="sidebar-link sidebar-link-logout"
+          >
+            Выйти
+          </button>
         </nav>
-        <div class="user-info">
-          <span class="username">{{ currentUser?.username || 'Пользователь' }}</span>
-          <button @click="handleLogout" class="logout-btn">Выйти</button>
-        </div>
-      </header>
+      </aside>
+
       <main class="app-main">
         <ProjectPlanner
           v-if="currentPage === 'projects'"
           :initialProjectId="initialProjectId"
           @projectCreated="handleProjectCreated"
+          @openSidebar="openSidebar"
           ref="projectPlanner"
         />
         <Profile
           v-if="currentPage === 'profile'"
           @openProject="handleOpenProjectFromProfile"
           @createProject="handleCreateProjectFromProfile"
+          @openSidebar="openSidebar"
         />
       </main>
     </div>
@@ -62,7 +84,8 @@ export default {
       isAuthenticated: false,
       currentUser: null,
       currentPage: 'projects',
-      initialProjectId: null
+      initialProjectId: null,
+      isSidebarOpen: false
     }
   },
   mounted() {
@@ -79,8 +102,8 @@ export default {
       this.currentUser = user
     },
 
-    handleLogout() {
-      authService.logout()
+    async handleLogout() {
+      await authService.logout()
       this.isAuthenticated = false
       this.currentUser = null
     },
@@ -101,6 +124,24 @@ export default {
 
     handleProjectCreated() {
       console.log('Project created')
+    },
+
+    openSidebar() {
+      this.isSidebarOpen = true
+    },
+
+    closeSidebar() {
+      this.isSidebarOpen = false
+    },
+
+    goToProfile() {
+      this.currentPage = 'profile'
+      this.closeSidebar()
+    },
+
+    goToProjects() {
+      this.currentPage = 'projects'
+      this.closeSidebar()
     }
   }
 }
@@ -135,71 +176,96 @@ html, body {
   flex-direction: column;
 }
 
-.app-header {
-  background: #ffffff;
-  color: #333;
-  padding: 15px 20px;
+/* Sidebar стили */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -300px;
+  width: 280px;
+  height: 100vh;
+  background: white;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  transition: left 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
   display: flex;
   justify-content: flex-end;
-  align-items: center;
-  border-bottom: 1px solid #e0e0e0;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  z-index: 100;
 }
 
-.user-info {
+.close-btn {
+  font-size: 28px;
+  color: #666;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
-  gap: 15px;
-}
-
-.username {
-  font-size: 14px;
-  color: #666;
-  margin-right: 15px;
-}
-
-.logout-btn {
-  background: #4a90e2;
-  color: white;
-  padding: 8px 16px;
+  justify-content: center;
   border-radius: 6px;
-  font-size: 14px;
   transition: all 0.3s ease;
 }
 
-.logout-btn:hover {
-  background: #357abd;
-}
-
-.app-nav {
-  display: flex;
-  gap: 5px;
-  margin-right: auto;
-}
-
-.nav-btn {
-  background: transparent;
-  color: #666;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  border: 1px solid transparent;
-}
-
-.nav-btn:hover {
+.close-btn:hover {
   background: #f5f5f5;
-  color: #4a90e2;
+  color: #0d6efd;
 }
 
-.nav-btn.active {
-  background: #4a90e2;
+.sidebar-nav {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-link {
+  display: block;
+  padding: 14px 20px;
+  background: #f8f9fa;
+  color: #333;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sidebar-link:hover {
+  background: #0d6efd;
   color: white;
+  transform: translateX(4px);
 }
 
-.nav-btn.active:hover {
-  background: #357abd;
+.sidebar-link-logout {
+  margin-top: 10px;
+  background: #fff5f5;
+  color: #dc3545;
+}
+
+.sidebar-link-logout:hover {
+  background: #dc3545;
+  color: white;
 }
 
 .app-main {

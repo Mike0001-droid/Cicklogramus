@@ -6,6 +6,12 @@
   position: relative;
 }
 
+.header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .controls-row {
   display: flex;
   flex-wrap: wrap;
@@ -52,9 +58,9 @@
 }
 
 .btn.active {
-  background-color: #007bff;
+  background-color: #0d6efd;
   color: white;
-  border-color: #007bff;
+  border-color: #0d6efd;
 }
 
 .excel-main-grid {
@@ -199,10 +205,10 @@
 }
 
 .resize-handle:hover {
-  background: #007bff;
+  background: #0d6efd;
   opacity: 1;
   width: 10px;
-  box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+  box-shadow: 0 2px 4px rgba(13,110,253,0.3);
 }
 
 .gantt-controls {
@@ -229,6 +235,11 @@
   background: white;
 }
 
+.excel-left-fixed {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
 .excel-body-left {
   height: 100%;
@@ -266,8 +277,14 @@
   padding: 40px;
   color: #6c757d;
   font-style: italic;
-  height: 100px;
+  height: 100%;
   background: white;
+}
+
+.empty-message {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
 }
 
 /* Правая прокручиваемая часть */
@@ -386,11 +403,6 @@
   background: white;
 }
 
-.empty-message {
-  text-align: center;
-  font-size: 16px;
-}
-
 /* Excel-дисплей */
 .excel-display {
   position: fixed;
@@ -398,7 +410,7 @@
   left: 50%;
   transform: translateX(-50%);
   background: #f8f9fa;
-  border: 2px solid #007bff;
+  border: 2px solid #0d6efd;
   border-radius: 6px;
   padding: 12px 16px;
   font-size: 14px;
@@ -624,7 +636,7 @@
 }
 
 .form-range.zoom-slider::-webkit-slider-thumb {
-  background: #007bff;
+  background: #0d6efd;
   border: none;
   height: 1rem;
   width: 1rem;
@@ -632,7 +644,7 @@
 }
 
 .form-range.zoom-slider::-moz-range-thumb {
-  background: #007bff;
+  background: #0d6efd;
   border: none;
   height: 1rem;
   width: 1rem;
@@ -1119,8 +1131,8 @@
 .action-btn .icon-delete-container {
   background: white;
   border-radius: 2px;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1130,18 +1142,19 @@
 /* Сам символ крестика внутри квадрата */
 .action-btn .icon-delete-symbol {
   color: #000000;
-  font-size: 20px;
+  font-size: 24px;
   line-height: 1;
   text-align: center;
   transform: translateY(-1px);
+  font-weight: bold;
 }
 
 /* Контейнер для белого квадрата иконки добавления */
 .action-btn .icon-add-container {
   background: white;
   border-radius: 2px;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1151,10 +1164,11 @@
 /* Сам символ плюса внутри квадрата */
 .action-btn .icon-add-symbol {
   color: #000000;
-  font-size: 30px;
+  font-size: 24px;
   line-height: 1;
   text-align: center;
-  transform: translateY(-3px);
+  transform: translateY(-1px);
+  font-weight: bold;
 }
 
 /* Стили для кнопки удаления зависимости */
@@ -1254,13 +1268,13 @@
 }
 
 .task-type-btn:hover {
-  border-color: #007bff;
+  border-color: #0d6efd;
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
 }
 
 .new-task-btn:hover {
-  border-color: #28a745;
+  border-color: #0d6efd;
   box-shadow: 0 8px 25px rgba(40, 167, 69, 0.15);
 }
 
@@ -1387,7 +1401,7 @@
 
 .color-swal-btn:hover {
   transform: scale(1.1);
-  border-color: #007bff;
+  border-color: #0d6efd;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
@@ -1396,10 +1410,10 @@
 .excel-row-right.dragging {
   opacity: 0.8;
   transform: scale(1.02) rotate(2deg);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.4), 0 0 0 2px #007bff;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4), 0 0 0 2px #0d6efd;
   z-index: 1000;
   cursor: grabbing !important;
-  background: linear-gradient(135deg, rgba(0,123,255,0.1), rgba(0,123,255,0.05));
+  background: linear-gradient(135deg, rgba(13,110,253,0.1), rgba(13,110,253,0.05));
   transition: all 0.2s ease-out;
 }
 
@@ -1412,9 +1426,9 @@
 
 .excel-row-left[draggable="true"]:hover,
 .excel-row-right[draggable="true"]:hover {
-  box-shadow: 0 3px 12px rgba(0,123,255,0.2);
+  box-shadow: 0 3px 12px rgba(13,110,253,0.2);
   transform: translateY(-1px);
-  background: linear-gradient(135deg, rgba(0,123,255,0.03), rgba(0,123,255,0.01));
+  background: linear-gradient(135deg, rgba(13,110,253,0.03), rgba(13,110,253,0.01));
 }
 
 .excel-row-left[draggable="true"]:active,
@@ -1430,11 +1444,11 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #007bff, #28a745);
+  background: linear-gradient(90deg, #0d6efd, #0d6efd);
   z-index: 1001;
   pointer-events: none;
   border-radius: 2px;
-  box-shadow: 0 0 10px rgba(0,123,255,0.5);
+  box-shadow: 0 0 10px rgba(13,110,253,0.5);
   animation: pulse 1.5s infinite;
 }
 
@@ -1455,15 +1469,15 @@
 /* Эффект при наведении на целевую строку */
 .excel-row-left.drag-over,
 .excel-row-right.drag-over {
-  background: linear-gradient(135deg, rgba(40,167,69,0.1), rgba(0,123,255,0.1)) !important;
-  border: 2px dashed #28a745;
+  background: linear-gradient(135deg, rgba(13,110,253,0.1), rgba(13,110,253,0.1)) !important;
+  border: 2px dashed #0d6efd;
   animation: borderPulse 1s infinite;
 }
 
 @keyframes borderPulse {
-  0% { border-color: #28a745; }
-  50% { border-color: #007bff; }
-  100% { border-color: #28a745; }
+  0% { border-color: #0d6efd; }
+  50% { border-color: #0d6efd; }
+  100% { border-color: #0d6efd; }
 }
 
 /* Предотвращение выделения текста при перетаскивании */
@@ -1487,7 +1501,7 @@
   transform: translateY(-50%);
   width: 6px;
   height: 6px;
-  background: #28a745;
+  background: #0d6efd;
   border-radius: 50%;
   box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
   animation: dependencyPulse 2s infinite;
@@ -1504,13 +1518,13 @@
 }
 
 .task-has-dependencies.drag-over {
-  background: linear-gradient(135deg, rgba(40,167,69,0.15), rgba(0,123,255,0.1)) !important;
-  border: 2px dashed #28a745;
+  background: linear-gradient(135deg, rgba(13,110,253,0.15), rgba(13,110,253,0.1)) !important;
+  border: 2px dashed #0d6efd;
   animation: dependencyBorderPulse 1s infinite;
 }
 
 @keyframes dependencyBorderPulse {
-  0% { border-color: #28a745; box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.5); }
-  50% { border-color: #007bff; box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2); }
-  100% { border-color: #28a745; box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.5); }
+  0% { border-color: #0d6efd; box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.5); }
+  50% { border-color: #0d6efd; box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.2); }
+  100% { border-color: #0d6efd; box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.5); }
 }

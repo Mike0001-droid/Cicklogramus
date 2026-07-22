@@ -219,6 +219,7 @@ export default {
   font-size: 11px;
   padding: 2px 6px;
   white-space: nowrap;
+  font-weight: bold;
 }
 
 .add-dependency-btn:disabled {

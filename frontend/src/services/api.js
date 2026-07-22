@@ -176,11 +176,19 @@ export const authService = {
     return this.login(username, password);
   },
 
-  logout() {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
-    delete api.defaults.headers.common['Authorization'];
+  async logout() {
+    try {
+      // Вызываем backend logout для завершения Django сессии
+      await axios.post('/api/auth/logout/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Всегда очищаем локальные данные
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+      delete api.defaults.headers.common['Authorization'];
+    }
   },
 
   decodeToken(token) {
@@ -211,10 +219,28 @@ export const authService = {
         console.error('❌ Error parsing user:', e);
         // Очищаем некорректные данные
         localStorage.removeItem('user');
-        return null;
       }
     }
-    console.log('❌ No valid user found in localStorage');
+
+    // Если пользователя нет в localStorage, пробуем получить из токена
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      const decodedToken = this.decodeToken(token);
+      if (decodedToken) {
+        console.log('✅ Got user from token:', decodedToken);
+        // Сохраняем в localStorage для будущего использования
+        localStorage.setItem('user', JSON.stringify({
+          username: decodedToken.username,
+          email: decodedToken.email
+        }));
+        return {
+          username: decodedToken.username,
+          email: decodedToken.email
+        };
+      }
+    }
+
+    console.log('❌ No valid user found');
     return null;
   },
 
