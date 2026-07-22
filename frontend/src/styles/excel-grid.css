@@ -123,8 +123,15 @@
   display: flex;
   height: 100%;
   flex: 1;
-  overflow-x: auto;
+  overflow: hidden;
   min-width: min-content;
+  /* Скрываем собственный скроллбар */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.time-scale-header::-webkit-scrollbar {
+  display: none;
 }
 
 .time-scale-tick {
@@ -227,23 +234,47 @@
   border-radius: 3px;
 }
 
-/* Контейнер для тела таблицы с разделением на фиксированную и скроллируемую части */
-.excel-body-container {
+/* Контейнер для раздельного скроллинга */
+.excel-scrollable-container {
   flex: 1;
   display: flex;
   overflow: hidden;
   background: white;
+  position: relative;
 }
 
+/* Левая часть - только вертикальный скролл */
 .excel-left-fixed {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  display: block;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-shrink: 0;
+  height: 100%;
+  width: fit-content;
+}
+
+/* Стилизация скроллбара левой части */
+.excel-left-fixed::-webkit-scrollbar {
+  width: 12px;
+}
+
+.excel-left-fixed::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 6px;
+}
+
+.excel-left-fixed::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 6px;
+  border: 2px solid #f1f1f1;
+}
+
+.excel-left-fixed::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .excel-body-left {
-  height: 100%;
-  overflow-y: auto;
+  /* Контейнер для строк левой части */
 }
 
 .excel-row-left {
@@ -287,16 +318,38 @@
   font-weight: 500;
 }
 
-/* Правая прокручиваемая часть */
+/* Правая часть - горизонтальный и вертикальный скролл */
 .excel-right-scrollable {
   flex: 1;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: auto;
+  position: relative;
+  height: 100%;
+}
+
+/* Стилизация скроллбара правой части */
+.excel-right-scrollable::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.excel-right-scrollable::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 6px;
+}
+
+.excel-right-scrollable::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 6px;
+  border: 2px solid #f1f1f1;
+}
+
+.excel-right-scrollable::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .excel-body-right {
   min-width: min-content;
-  height: 100%;
+  /* Контейнер для строк правой части */
 }
 
 .excel-row-right {
@@ -492,26 +545,9 @@
   overflow-y: auto;
 }
 
-/* Стили для скроллбаров */
-.time-scale-header::-webkit-scrollbar,
-.excel-right-scrollable::-webkit-scrollbar {
-  height: 6px;
-}
-
-.time-scale-header::-webkit-scrollbar-track,
-.excel-right-scrollable::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.time-scale-header::-webkit-scrollbar-thumb,
-.excel-right-scrollable::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-
-.time-scale-header::-webkit-scrollbar-thumb:hover,
-.excel-right-scrollable::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+/* Скроллбары для внутренних элементов (скрыты) */
+.time-scale-header::-webkit-scrollbar {
+  display: none;
 }
 
 .horizontal-scroll-track::-webkit-scrollbar {
@@ -567,13 +603,18 @@
     font-size: 9px;
   }
   
-  .excel-body-container {
+  .excel-scrollable-container {
     flex-direction: column;
   }
 
-  
+  .excel-left-fixed {
+    overflow-y: auto;
+    max-height: none;
+  }
+
   .excel-right-scrollable {
     flex: 1;
+    overflow: auto;
   }
 }
 

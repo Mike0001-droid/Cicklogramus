@@ -306,11 +306,11 @@
         </div>
       </div>
 
-      <!-- Тело сетки с горизонтальным скроллом -->
-      <div class="excel-body-container">
-        <!-- Левая фиксированная часть -->
-        <div class="excel-left-fixed">
-          <div class="excel-body-left">
+      <!-- Контейнер с раздельным скроллингом для частей -->
+      <div class="excel-scrollable-container">
+        <!-- Левая фиксированная часть (только вертикальный скролл) -->
+        <div class="excel-left-fixed" ref="leftScrollContainer" @scroll="onLeftScroll">
+          <div class="excel-body-left" ref="leftBody">
             <div
               v-for="task in currentProject.tasks"
               :key="task.id"
@@ -329,8 +329,8 @@
               @dragover="handleDragOver($event, task)"
               @drop="handleDrop($event, task)"
             >
-              <div 
-                v-for="column in leftColumns" 
+              <div
+                v-for="column in leftColumns"
                 :key="column.key"
                 class="excel-cell"
                 :style="{ width: getColumnWidth(column.key) + 'px', minWidth: getColumnMinWidth(column.key) + 'px' }"
@@ -353,13 +353,11 @@
                 />
               </div>
             </div>
-            
-            
           </div>
         </div>
 
-        <!-- Правая прокручиваемая часть -->
-        <div class="excel-right-scrollable" ref="scrollableArea" @scroll="onHorizontalScroll">
+        <!-- Правая часть (горизонтальный и вертикальный скролл) -->
+        <div class="excel-right-scrollable" ref="scrollableArea" @scroll="onRightScroll">
           <div class="excel-body-right" :style="{ minWidth: totalGanttWidth + 'px' }">
             <div
               v-for="task in currentProject.tasks"
@@ -573,6 +571,9 @@ export default {
       // Горизонтальный скролл
       scrollPosition: 0,
       scrollThumbWidth: 100,
+      // Флаги для предотвращения зацикливания синхронизации
+      isScrollingLeft: false,
+      isScrollingRight: false,
       dependenciesModal: {
         task: null,
         show: false
@@ -719,14 +720,19 @@ export default {
     resetZoom() {
       this.setTimeScale(1.0);
       this.scrollPosition = 0;
+      this.$nextTick(() => {
+        if (this.$refs.scrollableArea) {
+          this.$refs.scrollableArea.scrollLeft = 0;
+        }
+      });
     },
-    
+
     fitToContent() {
       if (!this.currentProject?.tasks?.length) return;
-      
+
       const maxFinishTime = this.getMaxFinishTime();
       if (maxFinishTime === 0) return;
-      
+
       // Вычисляем оптимальный масштаб чтобы вместить все задачи
       const containerWidth = this.$refs.scrollableArea ? this.$refs.scrollableArea.clientWidth : 800;
       const requiredWidth = maxFinishTime * this.basePixelsPerSecond;
@@ -734,9 +740,14 @@ export default {
         this.minTimeScale,
         Math.min(containerWidth / requiredWidth, this.maxTimeScale)
       );
-      
+
       this.setTimeScale(optimalScale);
       this.scrollPosition = 0;
+      this.$nextTick(() => {
+        if (this.$refs.scrollableArea) {
+          this.$refs.scrollableArea.scrollLeft = 0;
+        }
+      });
     },
     
     getMaxFinishTime() {
@@ -744,29 +755,64 @@ export default {
       return Math.max(...this.currentProject.tasks.map(task => task.finish_time || 0));
     },
 
-    // ГОРИЗОНТАЛЬНЫЙ СКРОЛЛ
+    // РАЗДЕЛЬНЫЙ СКРОЛЛ ДЛЯ ЧАСТЕЙ
     setupHorizontalScroll() {
       // Инициализация скролла
       this.$nextTick(() => {
         this.updateScrollThumb();
       });
     },
-    
-    onHorizontalScroll(event) {
-      const scrollTrack = event.target;
-      const scrollWidth = scrollTrack.scrollWidth - scrollTrack.clientWidth;
-      const scrollLeft = scrollTrack.scrollLeft;
-      
-      if (scrollWidth > 0) {
-        this.scrollPosition = (scrollLeft / scrollWidth) * (this.totalGanttWidth - (this.$refs.scrollableArea?.clientWidth || 800));
+
+    onLeftScroll(event) {
+      // Синхронизируем вертикальный скролл левой части с правой
+      if (this.isScrollingRight) return; // Пропускаем если скролл инициирован правой частью
+
+      this.isScrollingLeft = true;
+      const leftContainer = event.target;
+
+      if (this.$refs.scrollableArea) {
+        this.$refs.scrollableArea.scrollTop = leftContainer.scrollTop;
       }
+
+      // Сбрасываем флаг в следующем фрейме
+      requestAnimationFrame(() => {
+        this.isScrollingLeft = false;
+      });
     },
-    
-    syncScroll() {
-      if (this.$refs.timeScaleHeader && this.$refs.scrollableArea) {
-        this.$refs.timeScaleHeader.scrollLeft = this.scrollPosition;
-        this.$refs.scrollableArea.scrollLeft = this.scrollPosition;
+
+    onRightScroll(event) {
+      // Синхронизируем вертикальный скролл правой части с левой
+      if (this.isScrollingLeft) return; // Пропускаем если скролл инициирован левой частью
+
+      this.isScrollingRight = true;
+      const rightContainer = event.target;
+
+      // Синхронизируем вертикальный скролл
+      if (this.$refs.leftScrollContainer) {
+        this.$refs.leftScrollContainer.scrollTop = rightContainer.scrollTop;
       }
+
+      // Синхронизируем горизонтальный скролл с заголовком временной шкалы
+      if (this.$refs.timeScaleHeader) {
+        this.$refs.timeScaleHeader.scrollLeft = rightContainer.scrollLeft;
+      }
+
+      // Обновляем позицию горизонтального скролла
+      this.scrollPosition = rightContainer.scrollLeft;
+
+      // Сбрасываем флаг в следующем фрейме
+      requestAnimationFrame(() => {
+        this.isScrollingRight = false;
+      });
+    },
+
+    syncScroll() {
+      this.$nextTick(() => {
+        if (this.$refs.timeScaleHeader && this.$refs.scrollableArea) {
+          this.$refs.timeScaleHeader.scrollLeft = this.scrollPosition;
+          this.$refs.scrollableArea.scrollLeft = this.scrollPosition;
+        }
+      });
     },
     
     updateScrollThumb() {
@@ -876,7 +922,7 @@ export default {
       column.width = newWidth;
     },
     
-    stopLeftResize(event) {
+    stopLeftResize() {
       this.isResizing = false;
       this.resizingColumnKey = null;
       
