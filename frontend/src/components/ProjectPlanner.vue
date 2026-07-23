@@ -683,16 +683,28 @@ export default {
       if (hasStartTime && hasFinishTime) {
         const conflicts = this.findTimeConflicts(task);
         if (conflicts.length > 0) {
-          alert(`Ошибка! Исполнитель уже занят в это время операциями:\n${conflicts.map(c => `- "${c.name}" (${c.start_time}-${c.finish_time} сек)`).join('\n')}`);
+          await Swal.fire({
+            title: 'Ошибка! Исполнитель занят',
+            html: `Исполнитель уже занят в это время операциями:<br>${conflicts.map(c => `- "${c.name}" (${c.start_time}-${c.finish_time} сек)`).join('<br>')}`,
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#dc3545'
+          });
           return;
         }
-        
+
         const dependencyErrors = this.checkDependencies(task);
         if (dependencyErrors.length > 0) {
-          alert(`Ошибка зависимостей:\n${dependencyErrors.join('\n')}`);
+          await Swal.fire({
+            title: 'Ошибка зависимостей',
+            html: dependencyErrors.join('<br>'),
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#dc3545'
+          });
           return;
         }
-        
+
         await this.updateTask(task);
       }
     },

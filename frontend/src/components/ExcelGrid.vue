@@ -30,117 +30,118 @@
 
     <!-- Панель управления -->
     <div class="control-panel">
-      <div class="header-row mb-3">
-        <button @click="$emit('openSidebar')" class="menu-btn me-2">☰</button>
-        <h3 class="mb-0">Циклограммус</h3>
+      <div class="header-row mb-2" style="display: flex; align-items: center; gap: 16px;">
+        <button @click="$emit('openSidebar')" class="menu-btn">☰</button>
+        <h3
+          class="mb-0"
+          style="cursor: pointer; user-select: none;"
+          @click="showControls = !showControls"
+          title="Нажмите для отображения/скрытия кнопок"
+        >
+          Циклограммус
+        </h3>
       </div>
 
-      <div class="controls-row">
-        <button @click="$emit('addProject')" class="btn btn-primary me-2">Новый проект</button>
-        
-        <!-- Кнопка добавления операции -->
-        <div class="btn-group me-2">
-          <button @click="showTaskModal = true" class="btn btn-success" :disabled="!currentProject">
-            Добавить операцию
+      <transition name="buttons-fade">
+        <div class="controls-row mb-3" v-show="showControls" style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button @click="$emit('addProject')" class="btn btn-primary btn-sm">Новый проект</button>
+
+          <button @click="$emit('addWorker')" class="btn btn-info btn-sm">
+            Добавить исполнителя
           </button>
-        </div>
-        
-        <button @click="$emit('addWorker')" class="btn btn-info me-2">
-          Добавить исполнителя
-        </button>
 
-        <button
-          @click="handleBulkDelete"
-          class="btn btn-danger me-2"
-          :disabled="!hasSelectedTasks"
-          :title="hasSelectedTasks ? `Удалить выбранные операции (${selectedCount})` : 'Выделите операции для удаления'"
-        >
-          Удалить выбранные
-        </button>
-
-        <!-- Кнопка с выпадающим меню "Цикл работы" -->
-        <div class="dropdown me-2" ref="cycleDropdown" style="position: relative;">
-          <button
-            class="btn btn-warning"
-            type="button"
-            @click="showCycleDropdown = !showCycleDropdown"
-          >
-            Цикл работы ▼
-          </button>
-          <ul
-            class="dropdown-menu show"
-            v-if="showCycleDropdown"
-            @click.stop
-            style="display: block; position: absolute; top: 100%; left: 0; z-index: 1000; min-width: 200px;"
-          >
-            <li>
-              <button
-                class="dropdown-item"
-                @click="handleCreateCycle"
-                :disabled="!hasSelectedTasks"
-              >
-                Зафиксировать цикл
-              </button>
-            </li>
-            <li>
-              <button
-                class="dropdown-item"
-                @click="toggleCycleSelector"
-              >
-                Отобразить циклы
-              </button>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Выбор существующего цикла работы -->
-        <div class="cycle-selector me-2" v-if="showCycleSelector">
-          <select
-            v-model="selectedBlockIds"
-            @change="handleBlockSelect"
-            class="form-select form-select-sm"
-            style="width: 250px;"
-            multiple
-          >
-            <option v-if="operationBlocks.length === 0" disabled>
-              Нет созданных циклов
-            </option>
-            <option
-              v-for="block in operationBlocks"
-              :key="block.id"
-              :value="block.id"
+          <!-- Кнопка с выпадающим меню "Цикл работы" -->
+          <div class="dropdown" ref="cycleDropdown" style="position: relative;">
+            <button
+              class="btn btn-warning btn-sm"
+              type="button"
+              @click="showCycleDropdown = !showCycleDropdown"
             >
-              {{ block.name }} ({{ block.items?.length || 0 }} операций)
-            </option>
-          </select>
+              Цикл
+            </button>
+            <ul
+              class="dropdown-menu show"
+              v-if="showCycleDropdown"
+              @click.stop
+              style="display: block; position: absolute; top: 100%; left: 0; z-index: 1000; min-width: 200px;"
+            >
+              <li>
+                <button
+                  class="dropdown-item"
+                  @click="handleCreateCycle"
+                  :disabled="!hasSelectedTasks"
+                >
+                  Зафиксировать цикл
+                </button>
+              </li>
+              <li class="dropdown-submenu" style="position: relative;">
+                <button
+                  class="dropdown-item"
+                  @click="showCycleListDropdown = !showCycleListDropdown"
+                  style="display: flex; justify-content: space-between; align-items: center;"
+                >
+                  <span>Отобразить циклы</span>
+                  <span style="margin-left: 20px;">▶</span>
+                </button>
+                <ul
+                  class="dropdown-menu show"
+                  v-if="showCycleListDropdown"
+                  @click.stop
+                  style="display: block; position: absolute; top: 0; left: 100%; z-index: 1001; min-width: 250px; margin-left: -1px;"
+                >
+                  <li v-if="projectOperationBlocks.length === 0">
+                    <span class="dropdown-item text-muted"></span>
+                  </li>
+                  <li v-for="block in projectOperationBlocks" :key="block.id">
+                    <label class="dropdown-item" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                      <input
+                        type="checkbox"
+                        :value="block.id"
+                        v-model="selectedBlockIds"
+                        @change="handleBlockSelect"
+                        style="margin: 0;"
+                      >
+                      <span>{{ block.name }} ({{ block.items?.length || 0 }} операций)</span>
+                    </label>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Кнопка переключения панели масштабирования -->
+          <button
+            @click="showZoomPanel = !showZoomPanel"
+            class="btn btn-secondary btn-sm"
+          >
+            Масштаб
+          </button>
+
+          <button
+            @click="exportToExcel"
+            class="btn btn-success btn-sm"
+            :disabled="!currentProject || !currentProject.tasks || currentProject.tasks.length === 0 || isExporting"
+            title="Экспортировать циклограмму в Excel"
+          >
+            <span v-if="isExporting" class="spinner-border spinner-border-sm me-2" role="status"></span>
+            {{ isExporting ? 'Экспорт...' : 'Экспорт в Excel' }}
+          </button>
+
+          <button
+            @click="handleBulkDelete"
+            class="btn btn-danger btn-sm"
+            :disabled="!hasSelectedTasks"
+            :title="hasSelectedTasks ? `Удалить выбранные операции (${selectedCount})` : 'Выделите операции для удаления'"
+          >
+            Удалить выбранные
+          </button>
         </div>
-
-        <!-- Кнопка переключения панели масштабирования -->
-        <button
-          @click="showZoomPanel = !showZoomPanel"
-          class="btn btn-outline-secondary"
-          :class="{ active: showZoomPanel }"
-        >
-          Масштаб
-        </button>
-
-        
-
-        <button
-          @click="exportToExcel"
-          class="btn btn-success"
-          :disabled="!currentProject || !currentProject.tasks || currentProject.tasks.length === 0 || isExporting"
-          title="Экспортировать циклограмму в Excel"
-        >
-          <span v-if="isExporting" class="spinner-border spinner-border-sm me-2" role="status"></span>
-          {{ isExporting ? 'Экспорт...' : 'Экспорт в Excel' }}
-        </button>
-      </div>
+      </transition>
 
       <!-- Панель масштабирования -->
       <div v-if="showZoomPanel" class="zoom-panel mt-3 p-3 bg-light rounded">
         <div class="zoom-controls-grid">
-          <div class="zoom-slider-container">
+          <!-- <div class="zoom-slider-container">
             <label class="form-label">Масштаб времени: {{ timeScale }}x</label>
             <div class="d-flex align-items-center gap-3">
               <button @click="zoomOut" class="btn btn-outline-secondary btn-sm" title="Уменьшить масштаб">
@@ -159,22 +160,22 @@
                 +
               </button>
             </div>
-          </div>
+          </div> -->
           
           <div class="zoom-presets">
-            <button @click="setTimeScale(0.5)" class="btn btn-outline-secondary btn-sm">50%</button>
-            <button @click="setTimeScale(1)" class="btn btn-outline-secondary btn-sm">100%</button>
-            <button @click="setTimeScale(2)" class="btn btn-outline-secondary btn-sm">200%</button>
+            <!-- <button @click="setTimeScale(0.5)" class="btn btn-outline-secondary btn-sm">50</button>
+            <button @click="setTimeScale(1)" class="btn btn-outline-secondary btn-sm">100</button>
+            <button @click="setTimeScale(2)" class="btn btn-outline-secondary btn-sm">200</button> -->
             <button @click="fitToContent" class="btn btn-outline-primary btn-sm">Подогнать</button>
             <button @click="resetZoom" class="btn btn-outline-secondary btn-sm">Сбросить</button>
           </div>
           
-          <div class="zoom-info">
+          <!-- <div class="zoom-info">
             <small class="text-muted">
               Видимый диапазон: {{ timeRangeStart }}с - {{ timeRangeEnd }}с
               | Пикселей/сек: {{ Math.round(pixelsPerSecond) }}
             </small>
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -675,6 +676,8 @@ export default {
       isDragging: false,
       // Панель масштабирования
       showZoomPanel: false,
+      // Отображение кнопок управления
+      showControls: true,
       // Горизонтальный скролл
       scrollPosition: 0,
       scrollThumbWidth: 100,
@@ -696,6 +699,7 @@ export default {
       ],
       showCycleSelector: false,
       showCycleDropdown: false,
+      showCycleListDropdown: false,
       showWorkerWarning: false
     }
   },
@@ -718,6 +722,13 @@ export default {
       });
       
       return allTasks;
+    },
+    projectOperationBlocks() {
+      // Фильтруем циклы по текущему проекту
+      if (!this.currentProject || !this.currentProject.id) return [];
+      return this.operationBlocks.filter(block =>
+        block.source_project === this.currentProject.id
+      );
     },
     columnStyles() {
       const styles = {};
@@ -777,7 +788,7 @@ export default {
       }
 
       return this.selectedBlockIds.map(blockId => {
-        const block = this.operationBlocks.find(b => b.id === blockId);
+        const block = this.projectOperationBlocks.find(b => b.id === blockId);
         if (!block || !block.items) return null;
 
         // Находим все задачи текущего проекта, которые входят в этот цикл
@@ -1442,7 +1453,7 @@ export default {
       // Добавляем информацию о циклах работы
       if (this.isInSelectedBlock(task.id)) {
         const selectedBlocks = this.selectedBlockIds
-          .map(blockId => this.operationBlocks.find(block => block.id === blockId))
+          .map(blockId => this.projectOperationBlocks.find(block => block.id === blockId))
           .filter(block => block && block.items && block.items.some(item => item.task === task.id));
 
         if (selectedBlocks.length > 0) {
@@ -1822,20 +1833,15 @@ export default {
       }
     },
 
-    handleBlockSelect(event) {
-      const selectElement = event.target;
-      const selectedOptions = Array.from(selectElement.selectedOptions);
-      this.selectedBlockIds = selectedOptions
-        .map(option => parseInt(option.value))
-        .filter(value => !isNaN(value));
-
+    handleBlockSelect() {
+      // Конвертируем строки в числа
+      this.selectedBlockIds = this.selectedBlockIds.map(id => typeof id === 'string' ? parseInt(id) : id);
       console.log('🔍 Выбранные циклы ID:', this.selectedBlockIds);
       console.log('🔍 Cycle bounds array:', this.cycleBoundsArray);
     },
 
     toggleCycleSelector() {
-      this.showCycleSelector = !this.showCycleSelector;
-      this.showCycleDropdown = false; // Закрыть dropdown после выбора
+      this.showCycleListDropdown = !this.showCycleListDropdown;
     },
 
     handleClickOutside(event) {
@@ -1843,6 +1849,7 @@ export default {
       const dropdown = this.$refs.cycleDropdown;
       if (dropdown && !dropdown.contains(event.target)) {
         this.showCycleDropdown = false;
+        this.showCycleListDropdown = false;
       }
     },
 
@@ -1856,7 +1863,7 @@ export default {
       if (!this.selectedBlockIds || !this.selectedBlockIds.length) return false;
 
       return this.selectedBlockIds.some(blockId => {
-        const block = this.operationBlocks.find(b => b.id === blockId);
+        const block = this.projectOperationBlocks.find(b => b.id === blockId);
         return block && block.items && block.items.some(item => item.task === taskId);
       });
     },
@@ -1889,6 +1896,34 @@ export default {
   padding: 8px 12px;
   border-radius: 6px;
   transition: all 0.3s ease;
+}
+
+/* Анимация появления/скрытия кнопок */
+.buttons-fade-enter-active {
+  transition: all 0.4s ease;
+}
+.buttons-fade-leave-active {
+  transition: all 0.3s ease;
+}
+.buttons-fade-enter-from,
+.buttons-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.buttons-fade-enter-to,
+.buttons-fade-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Вложенное выпадающее меню */
+.dropdown-submenu .dropdown-item {
+  cursor: pointer;
+  user-select: none;
+}
+
+.dropdown-submenu .dropdown-item:hover {
+  background-color: #f8f9fa;
 }
 
 /* Строка добавления новой операции */
