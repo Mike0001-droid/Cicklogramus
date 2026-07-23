@@ -18,6 +18,7 @@
             @updateTask="updateTask"
             @updateTaskTimes="updateTaskTimes"
             @deleteTask="deleteTask"
+            @bulkDeleteTasks="bulkDeleteTasks"
             @addDependentTask="addDependentTask"
             @updateDependencies="updateDependencies"
             @addDependency="addDependency"
@@ -28,6 +29,8 @@
             @updateWorkerColorFromCell="updateWorkerColorFromCell"
             @exportToExcel="exportToExcel"
             @selectTask="selectTask"
+            @clearSelection="clearSelection"
+            @toggleTaskSelection="toggleTaskSelection"
             @createOperationBlock="createOperationBlock"
             @update:pixelsPerSecond="pixelsPerSecond = $event"
             @openSidebar="$emit('openSidebar')"
@@ -283,6 +286,22 @@ export default {
       this.selectedTaskIds = [task.id];
     },
 
+    clearSelection() {
+      // Очищаем выделение всех операций
+      this.selectedTaskId = null;
+      this.selectedTaskIds = [];
+    },
+
+    toggleTaskSelection(taskId) {
+      // Убираем из выделения только конкретную операцию
+      if (this.selectedTaskIds.includes(taskId)) {
+        this.selectedTaskIds = this.selectedTaskIds.filter(id => id !== taskId);
+        if (this.selectedTaskId === taskId) {
+          this.selectedTaskId = this.selectedTaskIds.length > 0 ? this.selectedTaskIds[0] : null;
+        }
+      }
+    },
+
     async createOperationBlock() {
       if (!this.currentProject) return;
 
@@ -291,38 +310,64 @@ export default {
         : (this.selectedTaskId ? [this.selectedTaskId] : []);
 
       if (!selectedIds.length) {
-        this.showError('\u0412\u044b\u0434\u0435\u043b\u0438\u0442\u0435 \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0438 \u0434\u043b\u044f \u0431\u043b\u043e\u043a\u0430.');
+        this.showError('Выделите операции для создания цикла работы.');
         return;
       }
 
       const tasks = this.currentProject.tasks || [];
       const selectedTasks = tasks.filter(task => selectedIds.includes(task.id));
       if (!selectedTasks.length) {
-        this.showError('\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043d\u0430\u0439\u0442\u0438 \u0432\u044b\u0434\u0435\u043b\u0435\u043d\u043d\u044b\u0435 \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0438.');
+        this.showError('Не удалось найти выделенные операции.');
         return;
       }
 
-      const workerIds = new Set(selectedTasks.map(task => task.worker));
-      if (workerIds.size !== 1) {
-        this.showError('\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0438 \u043e\u0434\u043d\u043e\u0433\u043e \u0440\u043e\u0431\u043e\u0442\u0430.');
-        return;
+      // Получаем уникальных исполнителей и их операции
+      const workerTasksMap = new Map();
+      selectedTasks.forEach(task => {
+        if (!workerTasksMap.has(task.worker)) {
+          const worker = this.workers.find(w => w.id === task.worker);
+          workerTasksMap.set(task.worker, {
+            worker: worker,
+            tasks: []
+          });
+        }
+        workerTasksMap.get(task.worker).tasks.push(task);
+      });
+
+      // Формируем информацию о модальном окне
+      let workersInfo = '';
+      if (workerTasksMap.size === 1) {
+        const workerData = [...workerTasksMap.values()][0];
+        workersInfo = `исполнителя <strong>${workerData.worker?.name || 'Неизвестный'}</strong>`;
+      } else {
+        const workerNames = [...workerTasksMap.values()].map(w => w.worker?.name || 'Неизвестный').join(', ');
+        workersInfo = `исполнителей: <strong>${workerNames}</strong>`;
       }
 
-      const workerId = selectedTasks[0].worker;
-      const workerName = this.workers.find(worker => worker.id === workerId)?.name || 'robot';
+      const operationsInfo = selectedTasks.map(task => {
+        const worker = this.workers.find(w => w.id === task.worker);
+        return `• [${worker?.name || 'Неизвестный'}] ${task.name} (${task.duration} сек)`;
+      }).join('\n');
 
       const result = await Swal.fire({
-        title: '\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0431\u043b\u043e\u043a\u0430',
+        title: 'Создание цикла работы',
+        html: `
+          <p>Цикл работы будет включать ${selectedTasks.length} операций ${workersInfo}:</p>
+          <div style="text-align: left; background: #f8f9fa; padding: 10px; border-radius: 4px; margin: 10px 0; font-size: 13px; white-space: pre-line; max-height: 200px; overflow-y: auto;">${operationsInfo}</div>
+          <p>Введите название цикла работы:</p>
+        `,
         input: 'text',
-        inputValue: `\u0411\u043b\u043e\u043a ${workerName}`,
+        inputValue: workerTasksMap.size === 1
+          ? `Цикл ${[...workerTasksMap.values()][0].worker?.name || 'работы'}`
+          : 'Смешанный цикл',
         showCancelButton: true,
-        confirmButtonText: 'OK',
-        cancelButtonText: '\u041e\u0442\u043c\u0435\u043d\u0430',
-        confirmButtonColor: '#198754',
+        confirmButtonText: 'Создать',
+        cancelButtonText: 'Отмена',
+        confirmButtonColor: '#ffc107',
         cancelButtonColor: '#6c757d',
         inputValidator: (value) => {
           if (!value || !value.trim()) {
-            return '\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0431\u043b\u043e\u043a\u0430';
+            return 'Введите название цикла работы';
           }
           return null;
         }
@@ -336,6 +381,9 @@ export default {
         position: index
       }));
 
+      // Определяем worker: null если несколько исполнителей, иначе ID единственного исполнителя
+      const workerId = workerTasksMap.size === 1 ? [...workerTasksMap.keys()][0] : null;
+
       try {
         await operationBlockService.createBlock({
           name: name,
@@ -346,16 +394,25 @@ export default {
 
         await Swal.fire({
           icon: 'success',
-          title: '\u0411\u043b\u043e\u043a \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d',
-          timer: 1500,
+          title: 'Цикл работы создан',
+          text: `Цикл работы "${name}" из ${selectedTasks.length} операций успешно сохранён`,
+          timer: 2000,
           showConfirmButton: false
         });
 
         this.selectedTaskId = null;
         this.selectedTaskIds = [];
+
+        // Уведомляем ExcelGrid об обновлении списка блоков через ref
+        this.$nextTick(() => {
+          const excelGrid = this.$children?.[0]; // ExcelGrid является первым дочерним компонентом
+          if (excelGrid && excelGrid.refreshBlocks) {
+            excelGrid.refreshBlocks();
+          }
+        });
       } catch (error) {
-        console.error('Block create error:', error);
-        this.showError('\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043e\u0437\u0434\u0430\u0442\u044c \u0431\u043b\u043e\u043a.');
+        console.error('Cycle create error:', error);
+        this.showError('Не удалось создать цикл работы.');
       }
     },
 
@@ -652,6 +709,51 @@ export default {
       } catch (error) {
         console.error('Ошибка удаления операции:', error);
         this.showError('Не удалось удалить операцию');
+      }
+    },
+
+    async bulkDeleteTasks(taskIds) {
+      if (!taskIds || taskIds.length === 0) {
+        this.showError('Нет выбранных операций для удаления');
+        return;
+      }
+
+      try {
+        // Показываем подтверждение
+        const result = await Swal.fire({
+          title: 'Удалить выбранные операции?',
+          text: `Будет удалено ${taskIds.length} операций. Это действие нельзя отменить.`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Удалить',
+          cancelButtonText: 'Отмена',
+          confirmButtonColor: '#dc3545',
+          cancelButtonColor: '#6c757d',
+          reverseButtons: true
+        });
+
+        if (!result.isConfirmed) {
+          return;
+        }
+
+        // Удаляем задачи через API
+        await taskService.bulkDeleteTasks(taskIds);
+
+        // Оптимизация: удаляем задачи локально
+        if (this.currentProject?.tasks) {
+          const idsSet = new Set(taskIds);
+          this.currentProject.tasks = this.currentProject.tasks.filter(t => !idsSet.has(t.id));
+        }
+
+        // Очищаем выделение
+        this.selectedTaskId = null;
+        this.selectedTaskIds = [];
+
+        this.generateTimeline();
+        this.showSuccess(`Удалено ${taskIds.length} операций`);
+      } catch (error) {
+        console.error('Ошибка массового удаления операций:', error);
+        this.showError('Не удалось удалить операции');
       }
     },
 

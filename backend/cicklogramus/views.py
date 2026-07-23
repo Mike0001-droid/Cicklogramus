@@ -131,7 +131,29 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         tasks = Task.objects.filter(project_id=project_id)
         return Response(TaskSerializer(tasks, many=True).data)
-    
+
+    @action(detail=False, methods=['post'])
+    def bulk_delete(self, request):
+        """Массовое удаление задач"""
+        task_ids = request.data.get('task_ids', [])
+
+        if not task_ids:
+            return Response({'error': 'task_ids are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Удаляем задачи
+        deleted_count = 0
+        for task_id in task_ids:
+            try:
+                task = Task.objects.get(id=task_id)
+                task.delete()
+                deleted_count += 1
+            except Task.DoesNotExist:
+                continue
+
+        return Response({
+            'message': f'Удалено {deleted_count} задач',
+            'deleted_count': deleted_count
+        }, status=status.HTTP_200_OK)
     @action(detail=True, methods=['get'])
     def export_gantt_chart(self, request, pk):
         try:

@@ -49,6 +49,72 @@
           Добавить исполнителя
         </button>
 
+        <button
+          @click="handleBulkDelete"
+          class="btn btn-danger me-2"
+          :disabled="!hasSelectedTasks"
+          :title="hasSelectedTasks ? `Удалить выбранные операции (${selectedCount})` : 'Выделите операции для удаления'"
+        >
+          Удалить выбранные
+        </button>
+
+        <!-- Кнопка с выпадающим меню "Цикл работы" -->
+        <div class="dropdown me-2" ref="cycleDropdown" style="position: relative;">
+          <button
+            class="btn btn-warning"
+            type="button"
+            @click="showCycleDropdown = !showCycleDropdown"
+          >
+            Цикл работы ▼
+          </button>
+          <ul
+            class="dropdown-menu show"
+            v-if="showCycleDropdown"
+            @click.stop
+            style="display: block; position: absolute; top: 100%; left: 0; z-index: 1000; min-width: 200px;"
+          >
+            <li>
+              <button
+                class="dropdown-item"
+                @click="handleCreateCycle"
+                :disabled="!hasSelectedTasks"
+              >
+                Зафиксировать цикл
+              </button>
+            </li>
+            <li>
+              <button
+                class="dropdown-item"
+                @click="toggleCycleSelector"
+              >
+                Отобразить циклы
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Выбор существующего цикла работы -->
+        <div class="cycle-selector me-2" v-if="showCycleSelector">
+          <select
+            v-model="selectedBlockIds"
+            @change="handleBlockSelect"
+            class="form-select form-select-sm"
+            style="width: 250px;"
+            multiple
+          >
+            <option v-if="operationBlocks.length === 0" disabled>
+              Нет созданных циклов
+            </option>
+            <option
+              v-for="block in operationBlocks"
+              :key="block.id"
+              :value="block.id"
+            >
+              {{ block.name }} ({{ block.items?.length || 0 }} операций)
+            </option>
+          </select>
+        </div>
+
         <!-- Кнопка переключения панели масштабирования -->
         <button
           @click="showZoomPanel = !showZoomPanel"
@@ -324,6 +390,7 @@
               :style="{ backgroundColor: (task.color || '#3498db') + '20' }"
               draggable="true"
               @click="selectTask(task, $event)"
+              @contextmenu.prevent="handleRightClick(task)"
               @dragstart="handleDragStart($event, task)"
               @dragend="handleDragEnd"
               @dragover="handleDragOver($event, task)"
@@ -353,12 +420,26 @@
                 />
               </div>
             </div>
+
+            <!-- Строка добавления новой операции -->
+            <div
+              v-if="currentProject"
+              class="excel-row-left add-task-row"
+              @click="handleAddTaskClick"
+            >
+              <div class="excel-cell add-task-cell">
+                <div class="add-task-content">
+                  <span class="add-task-icon">+</span>
+                  <span class="add-task-text">Добавить операцию</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Правая часть (горизонтальный и вертикальный скролл) -->
         <div class="excel-right-scrollable" ref="scrollableArea" @scroll="onRightScroll">
-          <div class="excel-body-right" :style="{ minWidth: totalGanttWidth + 'px' }">
+          <div class="excel-body-right" :style="{ minWidth: totalGanttWidth + 'px', position: 'relative' }">
             <div
               v-for="task in currentProject.tasks"
               :key="task.id"
@@ -372,6 +453,7 @@
               :style="{ backgroundColor: (task.color || '#3498db') + '20' }"
               draggable="true"
               @click="selectTask(task, $event)"
+              @contextmenu.prevent="handleRightClick(task)"
               @dragstart="handleDragStart($event, task)"
               @dragend="handleDragEnd"
               @dragover="handleDragOver($event, task)"
@@ -385,7 +467,29 @@
                   :timeScale="timeScale"
                   :workers="workers"
                   :currentProject="currentProject"
+                  :isInSelectedBlock="isInSelectedBlock"
                 />
+              </div>
+            </div>
+
+            <!-- Пунктирные прямоугольники циклов работы -->
+            <div
+              v-for="bounds in cycleBoundsArray"
+              :key="bounds.blockId"
+              class="cycle-rectangle"
+              :style="{
+                left: `${bounds.left}px`,
+                top: `${bounds.top}px`,
+                width: `${bounds.width}px`,
+                height: `${bounds.height}px`,
+                borderColor: bounds.color
+              }"
+            >
+              <div
+                class="cycle-rectangle-label"
+                :style="{ background: `linear-gradient(135deg, ${bounds.color}, ${darkenColor(bounds.color, 20)})` }"
+              >
+                🔄 {{ bounds.blockName }} ({{ bounds.taskCount }})
               </div>
             </div>
           </div>
@@ -471,6 +575,8 @@ import ActionsCell from './cells/ActionsCell.vue'
 import OrderCell from './cells/OrderCell.vue'
 import GanttTimeline from './GanttTimeline.vue'
 import Swal from 'sweetalert2';
+import { operationBlockService } from '../services/api'
+import { darkenColor } from '../utils/helpers'
 export default {
   name: 'ExcelGrid',
   components: {
@@ -500,6 +606,7 @@ export default {
     'updateTask',
     'updateTaskTimes',
     'deleteTask',
+    'bulkDeleteTasks',
     'addDependentTask',
     'updateDependencies',
     'addDependency',
@@ -577,7 +684,19 @@ export default {
       dependenciesModal: {
         task: null,
         show: false
-      }
+      },
+      // Циклы работы
+      operationBlocks: [],
+      selectedBlockIds: [],  // Массив выбранных циклов
+      blockColors: {},       // Цвета для каждого цикла
+      availableColors: [
+        '#ffc107', '#ff9800', '#e91e63', '#9c27b0', '#673ab7',
+        '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688',
+        '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ff5722'
+      ],
+      showCycleSelector: false,
+      showCycleDropdown: false,
+      showWorkerWarning: false
     }
   },
   computed: {
@@ -641,6 +760,63 @@ export default {
     isDurationValid() {
       const duration = parseInt(this.newTaskDuration);
       return !isNaN(duration) && duration > 0;
+    },
+    hasSelectedTasks() {
+      const ids = this.selectedTaskIds || [];
+      return ids.length > 0 || this.selectedTaskId;
+    },
+    selectedCount() {
+      const ids = this.selectedTaskIds || [];
+      if (ids.length > 0) return ids.length;
+      return this.selectedTaskId ? 1 : 0;
+    },
+    // Границы прямоугольников циклов на диаграмме Ганта
+    cycleBoundsArray() {
+      if (!this.selectedBlockIds || !this.selectedBlockIds.length || !this.currentProject?.tasks) {
+        return [];
+      }
+
+      return this.selectedBlockIds.map(blockId => {
+        const block = this.operationBlocks.find(b => b.id === blockId);
+        if (!block || !block.items) return null;
+
+        // Находим все задачи текущего проекта, которые входят в этот цикл
+        const blockTasks = block.items.map(item => item.task);
+        const cycleTasks = this.currentProject.tasks.filter(task =>
+          blockTasks.includes(task.id)
+        );
+
+        if (!cycleTasks.length) return null;
+
+        // Вычисляем временные границы
+        const minTime = Math.min(...cycleTasks.map(task => task.start_time || 0));
+        const maxTime = Math.max(...cycleTasks.map(task => task.finish_time || 0));
+
+        // Находим индексы первой и последней операции цикла в списке
+        const taskIndices = cycleTasks.map(task =>
+          this.currentProject.tasks.findIndex(t => t.id === task.id)
+        ).filter(index => index !== -1);
+
+        if (!taskIndices.length) return null;
+
+        const minIndex = Math.min(...taskIndices);
+        const maxIndex = Math.max(...taskIndices);
+
+        const rowHeight = 45; // высота строки
+        const rowGap = 0;      // отступ между строками
+        const headerOffset = 10; // отступ от заголовка
+
+        return {
+          blockId: blockId,
+          blockName: block.name,
+          left: minTime * this.pixelsPerSecond,
+          width: (maxTime - minTime) * this.pixelsPerSecond + this.pixelsPerSecond * 2,
+          top: minIndex * (rowHeight + rowGap) + headerOffset,
+          height: (maxIndex - minIndex + 1) * (rowHeight + rowGap) - rowGap,
+          taskCount: cycleTasks.length,
+          color: this.getBlockColor(blockId)
+        };
+      }).filter(bounds => bounds !== null);
     }
   },
   watch: {
@@ -662,6 +838,13 @@ export default {
   mounted() {
     this.setupHorizontalScroll();
     this.updateScrollThumb();
+    this.loadOperationBlocks();
+
+    // Обработчик клика вне dropdown для его закрытия
+    document.addEventListener('click', this.handleClickOutside);
+  },
+  beforeUnmount() {
+    document.removeEventListener('click', this.handleClickOutside);
   },
   methods: {
     selectTask(task, event) {
@@ -1254,16 +1437,33 @@ export default {
     },
 
     getTaskTooltip(task) {
-      if (!task.dependencies || task.dependencies.length === 0) {
-        return `Перетащите для изменения порядка выполнения`;
+      let tooltip = '';
+
+      // Добавляем информацию о циклах работы
+      if (this.isInSelectedBlock(task.id)) {
+        const selectedBlocks = this.selectedBlockIds
+          .map(blockId => this.operationBlocks.find(block => block.id === blockId))
+          .filter(block => block && block.items && block.items.some(item => item.task === task.id));
+
+        if (selectedBlocks.length > 0) {
+          tooltip += `🔄 Входит в цикл${selectedBlocks.length > 1 ? 'ы' : ''}: ${selectedBlocks.map(b => b.name).join(', ')}\n`;
+        }
       }
 
-      const dependencyNames = task.dependencies.map(depId => {
-        const depTask = this.currentProject.tasks.find(t => t.id === depId);
-        return depTask ? depTask.name : `Задача ${depId}`;
-      }).join(', ');
+      // Добавляем информацию о зависимостях
+      if (task.dependencies && task.dependencies.length > 0) {
+        const dependencyNames = task.dependencies.map(depId => {
+          const depTask = this.currentProject?.tasks.find(t => t.id === depId);
+          return depTask ? depTask.name : `Задача ${depId}`;
+        }).join(', ');
 
-      return `Зависит от: ${dependencyNames}. При перетаскивании время будет скорректировано автоматически.`;
+        tooltip += `Зависит от: ${dependencyNames}\n`;
+        tooltip += `При перетаскивании время будет скорректировано автоматически`;
+      } else {
+        tooltip += `Перетащите для изменения порядка выполнения`;
+      }
+
+      return tooltip || 'Операция';
     },
 
     async handleDrop(event, targetTask) {
@@ -1573,6 +1773,108 @@ export default {
     handleUpdateWorkerColor(workerId, newColor) {
       // Для обратной совместимости с существующим методом
       this.handleWorkerColorUpdated(workerId, newColor);
+    },
+
+    handleAddTaskClick() {
+      // Открываем модальное окно выбора типа операции
+      this.showTaskModal = true;
+    },
+
+    handleBulkDelete() {
+      // Собираем ID выделенных задач
+      const taskIds = [];
+      if (this.selectedTaskIds && this.selectedTaskIds.length > 0) {
+        taskIds.push(...this.selectedTaskIds);
+      } else if (this.selectedTaskId) {
+        taskIds.push(this.selectedTaskId);
+      }
+
+      if (taskIds.length === 0) return;
+
+      // Эмитируем событие родительскому компоненту
+      this.$emit('bulkDeleteTasks', taskIds);
+    },
+
+    handleRightClick(task) {
+      // Отменяем выбор только для этой операции при правом клике
+      this.$emit('toggleTaskSelection', task.id);
+    },
+
+    handleCreateCycle() {
+      // Проверяем, есть ли выделенные операции
+      const taskIds = this.selectedTaskIds && this.selectedTaskIds.length > 0
+        ? this.selectedTaskIds
+        : (this.selectedTaskId ? [this.selectedTaskId] : []);
+
+      if (taskIds.length === 0) return;
+
+      // Эмитируем событие родительскому компоненту для создания цикла работы
+      this.$emit('createOperationBlock');
+    },
+
+    async loadOperationBlocks() {
+      try {
+        const blocks = await operationBlockService.getBlocks();
+        console.log('🔄 Загружены циклы работы:', blocks);
+        this.operationBlocks = blocks;
+      } catch (error) {
+        console.error('❌ Ошибка загрузки циклов работы:', error);
+      }
+    },
+
+    handleBlockSelect(event) {
+      const selectElement = event.target;
+      const selectedOptions = Array.from(selectElement.selectedOptions);
+      this.selectedBlockIds = selectedOptions
+        .map(option => parseInt(option.value))
+        .filter(value => !isNaN(value));
+
+      console.log('🔍 Выбранные циклы ID:', this.selectedBlockIds);
+      console.log('🔍 Cycle bounds array:', this.cycleBoundsArray);
+    },
+
+    toggleCycleSelector() {
+      this.showCycleSelector = !this.showCycleSelector;
+      this.showCycleDropdown = false; // Закрыть dropdown после выбора
+    },
+
+    handleClickOutside(event) {
+      // Закрыть dropdown при клике вне его
+      const dropdown = this.$refs.cycleDropdown;
+      if (dropdown && !dropdown.contains(event.target)) {
+        this.showCycleDropdown = false;
+      }
+    },
+
+    refreshBlocks() {
+      // Метод для обновления списка блоков после создания
+      this.loadOperationBlocks();
+    },
+
+    isInSelectedBlock(taskId) {
+      // Проверка, входит ли задача в любой из выбранных циклов работы
+      if (!this.selectedBlockIds || !this.selectedBlockIds.length) return false;
+
+      return this.selectedBlockIds.some(blockId => {
+        const block = this.operationBlocks.find(b => b.id === blockId);
+        return block && block.items && block.items.some(item => item.task === taskId);
+      });
+    },
+
+    darkenColor(color, percent) {
+      return darkenColor(color, percent);
+    },
+
+    getBlockColor(blockId) {
+      // Получаем или назначаем цвет для блока
+      if (!this.blockColors[blockId]) {
+        const usedColors = Object.values(this.blockColors);
+        const availableColor = this.availableColors.find(color =>
+          !usedColors.includes(color)
+        ) || this.availableColors[0];
+        this.blockColors[blockId] = availableColor;
+      }
+      return this.blockColors[blockId];
     }
   }
 }
@@ -1589,7 +1891,107 @@ export default {
   transition: all 0.3s ease;
 }
 
+/* Строка добавления новой операции */
+.add-task-row {
+  height: 50px;
+  min-height: 50px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: transparent;
+  border: none;
+}
+
+.add-task-row:hover {
+  background-color: #f0f8ff;
+}
+
+.add-task-cell {
+  padding: 0 !important;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100% !important;
+  flex: 1;
+}
+
+.add-task-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: calc(100% - 24px);
+  height: calc(100% - 12px);
+  margin: 6px;
+  padding: 6px 12px;
+  border: 2px dashed #28a745;
+  border-radius: 6px;
+  background-color: rgba(40, 167, 69, 0.05);
+  transition: all 0.2s ease;
+  color: #28a745;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.add-task-row:hover .add-task-content {
+  border-color: #218838;
+  background-color: rgba(40, 167, 69, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(40, 167, 69, 0.2);
+}
+
+.add-task-icon {
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.add-task-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .menu-btn:hover {
   background: #f5f5f5;
+}
+
+/* Пунктирный прямоугольник цикла работы на диаграмме Ганта */
+.cycle-rectangle {
+  position: absolute;
+  border: 2px dashed #ffc107;
+  border-radius: 8px;
+  background-color: rgba(255, 193, 7, 0.05);
+  pointer-events: none;
+  z-index: 5;
+  box-shadow: 0 0 12px rgba(255, 193, 7, 0.3);
+  animation: cycleRectanglePulse 3s ease-in-out infinite;
+}
+
+.cycle-rectangle-label {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.4);
+  z-index: 6;
+}
+
+@keyframes cycleRectanglePulse {
+  0%, 100% {
+    border-color: #ffc107;
+    box-shadow: 0 0 12px rgba(255, 193, 7, 0.3);
+  }
+  50% {
+    border-color: #ff9800;
+    box-shadow: 0 0 20px rgba(255, 152, 0, 0.5);
+  }
 }
 </style>

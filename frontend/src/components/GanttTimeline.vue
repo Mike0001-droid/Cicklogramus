@@ -21,7 +21,8 @@ export default {
     visibleSeconds: Array,
     timeScale: Number,
     workers: Array,
-    currentProject: Object
+    currentProject: Object,
+    isInSelectedBlock: Function
   },
   methods: {
     getTaskBarStyle(task) {
@@ -72,7 +73,15 @@ export default {
     getTaskTooltip(task) {
       const worker = this.getWorker(task.worker);
       const workerName = worker ? worker.name : 'Не назначен';
-      return `${task.name}\nИсполнитель: ${workerName}\nВремя: ${task.start_time}-${task.finish_time}с\nДлительность: ${task.duration}с`;
+
+      let tooltip = `${task.name}\nИсполнитель: ${workerName}\nВремя: ${task.start_time}-${task.finish_time}с\nДлительность: ${task.duration}с`;
+
+      // Добавляем информацию о цикле работы, если операция входит в выбранный цикл
+      if (this.isInSelectedBlock && this.isInSelectedBlock(task.id)) {
+        tooltip += '\n\n🔄 Входит в выбранный цикл работы';
+      }
+
+      return tooltip;
     }
   }
 }

@@ -138,12 +138,24 @@ export const taskService = {
       project_id: projectId
     });
     return response.data;
+  },
+
+  async bulkDeleteTasks(taskIds) {
+    const response = await api.post('/tasks/bulk_delete/', {
+      task_ids: taskIds
+    });
+    return response.data;
   }
 };
 
 export const operationBlockService = {
   async createBlock(blockData) {
     const response = await api.post('/operation-blocks/', blockData);
+    return response.data;
+  },
+
+  async getBlocks() {
+    const response = await api.get('/operation-blocks/');
     return response.data;
   }
 };

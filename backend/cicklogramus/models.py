@@ -112,7 +112,7 @@ class Task(models.Model):
 
 class OperationBlock(models.Model):
     name = models.CharField(max_length=200)
-    worker = models.ForeignKey('Worker', on_delete=models.CASCADE, related_name='operation_blocks')
+    worker = models.ForeignKey('Worker', on_delete=models.CASCADE, related_name='operation_blocks', null=True, blank=True)
     source_project = models.ForeignKey(
         Project,
         on_delete=models.SET_NULL,
