@@ -656,7 +656,7 @@ export default {
         { key: 'duration', title: 'Длит', width: 90, minWidth: 20 },
         { key: 'dependencies', title: 'Зависимости', width: 150, minWidth: 20 },
         { key: 'color', title: 'Цвет', width: 90, minWidth: 20 },
-        { key: 'actions', title: 'Действия', width: 120, minWidth: 20 }
+        // { key: 'actions', title: 'Действия', width: 120, minWidth: 20 }
       ],
       isResizing: false,
       resizingColumnKey: null,
