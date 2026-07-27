@@ -5,6 +5,7 @@
         <!-- Единая Excel-сетка -->
         <div class="col-12 h-100">
           <ExcelGrid
+            ref="excelGrid"
             :projects="projects"
             :workers="workers"
             :currentProject="currentProject"
@@ -405,7 +406,7 @@ export default {
 
         // Уведомляем ExcelGrid об обновлении списка блоков через ref
         this.$nextTick(() => {
-          const excelGrid = this.$children?.[0]; // ExcelGrid является первым дочерним компонентом
+          const excelGrid = this.$refs.excelGrid;
           if (excelGrid && excelGrid.refreshBlocks) {
             excelGrid.refreshBlocks();
           }

@@ -101,7 +101,7 @@
                         @change="handleBlockSelect"
                         style="margin: 0;"
                       >
-                      <span>{{ block.name }} ({{ block.items?.length || 0 }} операций)</span>
+                      <span>{{ block.name }} ({{ getBlockDuration(block.id) }} сек)</span>
                     </label>
                   </li>
                 </ul>
@@ -134,6 +134,15 @@
             :title="hasSelectedTasks ? `Удалить выбранные операции (${selectedCount})` : 'Выделите операции для удаления'"
           >
             Удалить выбранные
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-cycle-time btn-sm"
+            disabled
+            title="Длительность самого большого цикла работы в проекте"
+          >
+           Цикл ячейки: {{ cycleCellTime }} сек
           </button>
         </div>
       </transition>
@@ -485,14 +494,7 @@
                 height: `${bounds.height}px`,
                 borderColor: bounds.color
               }"
-            >
-              <div
-                class="cycle-rectangle-label"
-                :style="{ background: `linear-gradient(135deg, ${bounds.color}, ${darkenColor(bounds.color, 20)})` }"
-              >
-                🔄 {{ bounds.blockName }} ({{ bounds.taskCount }})
-              </div>
-            </div>
+            ></div>
           </div>
         </div>
       </div>
@@ -730,6 +732,25 @@ export default {
         block.source_project === this.currentProject.id
       );
     },
+    cycleCellTime() {
+      // Длительность самого большого цикла работы (в секундах).
+      // Если в проекте один цикл — берётся он, если несколько — максимальный по (finish - start).
+      if (!this.projectOperationBlocks.length || !this.currentProject?.tasks) return 0;
+      const taskIds = new Set(this.currentProject.tasks.map(t => t.id));
+      let maxDuration = 0;
+      this.projectOperationBlocks.forEach(block => {
+        if (!block.items) return;
+        const cycleTasks = block.items
+          .map(item => this.currentProject.tasks.find(t => t.id === item.task))
+          .filter(t => t && taskIds.has(t.id));
+        if (!cycleTasks.length) return;
+        const minTime = Math.min(...cycleTasks.map(t => t.start_time || 0));
+        const maxTime = Math.max(...cycleTasks.map(t => t.finish_time || 0));
+        const duration = maxTime - minTime;
+        if (duration > maxDuration) maxDuration = duration;
+      });
+      return maxDuration;
+    },
     columnStyles() {
       const styles = {};
       this.leftColumns.forEach(column => {
@@ -822,7 +843,7 @@ export default {
           blockName: block.name,
           left: minTime * this.pixelsPerSecond,
           width: (maxTime - minTime) * this.pixelsPerSecond + this.pixelsPerSecond * 2,
-          top: minIndex * (rowHeight + rowGap) + headerOffset,
+          top: minIndex * (rowHeight + rowGap) + (minIndex > 0 ? headerOffset : 0),
           height: (maxIndex - minIndex + 1) * (rowHeight + rowGap) - rowGap,
           taskCount: cycleTasks.length,
           color: this.getBlockColor(blockId)
@@ -1882,6 +1903,18 @@ export default {
         this.blockColors[blockId] = availableColor;
       }
       return this.blockColors[blockId];
+    },
+    getBlockDuration(blockId) {
+      // Длительность цикла: max(finish_time) - min(start_time) задач цикла
+      const block = this.projectOperationBlocks.find(b => b.id === blockId);
+      if (!block || !block.items || !this.currentProject?.tasks) return 0;
+      const cycleTasks = block.items
+        .map(item => this.currentProject.tasks.find(t => t.id === item.task))
+        .filter(t => t);
+      if (!cycleTasks.length) return 0;
+      const minTime = Math.min(...cycleTasks.map(t => t.start_time || 0));
+      const maxTime = Math.max(...cycleTasks.map(t => t.finish_time || 0));
+      return maxTime - minTime;
     }
   }
 }
@@ -2028,5 +2061,13 @@ export default {
     border-color: #ff9800;
     box-shadow: 0 0 20px rgba(255, 152, 0, 0.5);
   }
+}
+
+.btn-cycle-time {
+  background-color: #e9ecef;
+  border: 1px solid #ced4da;
+  color: #495057;
+  opacity: 0.85;
+  cursor: default;
 }
 </style>
