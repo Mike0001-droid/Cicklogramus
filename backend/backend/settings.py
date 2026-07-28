@@ -10,11 +10,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host.strip()]
 
+# Базовые хосты из переменной окружения
+#ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host.strip()]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 # Для разработки разрешаем все локальные хосты
 if DEBUG:
     ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', 'localhost:3000', 'localhost:8000', 'localhost:8080'])
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
