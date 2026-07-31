@@ -13,7 +13,7 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # Базовые хосты из переменной окружения
 #ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host.strip()]
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'cicklogramus-production-2026.up.railway.app']
 # Для разработки разрешаем все локальные хосты
 if DEBUG:
     ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', 'localhost:3000', 'localhost:8000', 'localhost:8080'])
